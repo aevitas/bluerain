@@ -132,7 +132,7 @@ namespace BlueRain
 		}
 
 		/// <summary>
-		///     Writes the string.
+		///     Writes the specified string at the specified address using the specified encoding.
 		/// </summary>
 		/// <param name="address">The address.</param>
 		/// <param name="value">The value.</param>
