@@ -116,6 +116,11 @@ namespace BlueRain
 		/// </exception>
 		/// <exception cref="ArgumentNullException">Encoding may not be null.</exception>
 		/// <exception cref="ArgumentException">Address may not be IntPtr.Zero.</exception>
+		/// <exception cref="DecoderFallbackException">
+		///		A fallback occurred (see Character Encoding in the .NET Framework for
+		///		complete explanation)-and-<see cref="P:System.Text.Encoding.DecoderFallback" /> is set to 
+		///		<see cref="T:System.Text.DecoderExceptionFallback" />.
+		/// </exception>
 		public virtual async Task<string> ReadString(IntPtr address, Encoding encoding, int maximumLength = 512,
 			bool isRelative = false)
 		{
