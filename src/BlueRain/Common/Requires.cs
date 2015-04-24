@@ -1,5 +1,5 @@
 ﻿// Copyright (C) 2013-2015 aevitas
-// See the file COPYING for copying permission.
+// See the file LICENSE for copying permission.
 
 using System;
 using System.Collections.Generic;
