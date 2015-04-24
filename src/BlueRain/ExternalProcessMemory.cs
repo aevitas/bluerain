@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (C) 2013-2015 aevitas
+// See the file COPYING for copying permission.
+
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
