@@ -85,6 +85,7 @@
     <Compile Include="AllocatedMemory.cs" />
     <Compile Include="Common\Exceptions.cs" />
     <Compile Include="Common\Logging.cs" />
+    <Compile Include="Common\MarshalCache.cs" />
     <Compile Include="Common\Requires.cs" />
     <Compile Include="ExternalProcessMemory.cs" />
     <Compile Include="Native.cs" />

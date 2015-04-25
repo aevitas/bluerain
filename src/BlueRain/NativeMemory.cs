@@ -215,7 +215,7 @@ namespace BlueRain
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <param name="addresses">The addresses.</param>
 		/// <returns></returns>
-		public abstract Task<T> Read<T>(bool isRelative = false, params IntPtr[] addresses);
+		public abstract Task<T> Read<T>(bool isRelative = false, params IntPtr[] addresses) where T : struct;
 
 		/// <summary>
 		///     Writes the specified value at the specfied address.

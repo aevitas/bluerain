@@ -37,5 +37,17 @@ namespace BlueRain.Common
 			if (EqualityComparer<T>.Default.Equals(value, compareToValue)) 
 				throw new ArgumentException(parameterName);
 		}
+
+		/// <summary>
+		/// Requires the specified condition to evaluate to true, and throws an ArgumentException if it doesn't.
+		/// </summary>
+		/// <param name="condition">The condition.</param>
+		/// <param name="parameterName">Name of the parameter.</param>
+		/// <exception cref="ArgumentException"></exception>
+		public static void Condition(Func<bool> condition, string parameterName)
+		{
+			if (!condition())
+				throw new ArgumentException(parameterName);
+		}
 	}
 }

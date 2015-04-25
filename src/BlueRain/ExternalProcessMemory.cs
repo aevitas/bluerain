@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using BlueRain.Common;
@@ -150,36 +151,131 @@ namespace BlueRain
 		/// <returns></returns>
 		/// <exception cref="ArgumentException">Address may not be zero, and count may not be zero.</exception>
 		/// <exception cref="BlueRainReadException">Thrown if the ReadProcessMemory operation fails, or doesn't return the specified amount of bytes.</exception>
+		/// <exception cref="MissingMethodException">The class specified by <paramref name="T" /> does not have an accessible default constructor. </exception>
 		public override unsafe async Task<T> Read<T>(IntPtr address, bool isRelative = false)
-
 		{
-			var size = Marshal.SizeOf(typeof (T));
+			Requires.NotEqual(address, IntPtr.Zero, "address");
 
-			// Unsafe context doesn't allow for the use of await - run the read synchronously for now.
+			var size = MarshalCache<T>.Size;
+			// Unsafe context doesn't allow for the use of await - run the read synchronously.
 			var buffer = ReadBytes(address, size, isRelative).Result;
 
 			fixed (byte* b = buffer)
 				return Marshal.PtrToStructure<T>((IntPtr) b);
 		}
 
-		public override Task<T[]> Read<T>(IntPtr address, int count, bool isRelative = false)
+		/// <summary>
+		/// Reads the specified amount of values of the specified type at the specified address.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="address">The address.</param>
+		/// <param name="count">The count.</param>
+		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException">Address may not be zero, and count may not be zero.</exception>
+		/// <exception cref="BlueRainReadException">Thrown if the ReadProcessMemory operation fails, or doesn't return the specified amount of bytes.</exception>
+		/// <exception cref="MissingMethodException">The class specified by <paramref name="T" /> does not have an accessible default constructor. </exception>
+		public override async Task<T[]> Read<T>(IntPtr address, int count, bool isRelative = false)
 		{
-			throw new NotImplementedException();
+			Requires.NotEqual(address, IntPtr.Zero, "address");
+
+			var size = MarshalCache<T>.Size;
+
+			T[] ret = new T[count];
+
+			// Read = add + n * size
+			for (int i = 0; i < count; i++)
+				ret[i] = await Read<T>(address + (i*size), isRelative);
+
+			return ret;
 		}
 
-		public override Task<T> Read<T>(bool isRelative = false, params IntPtr[] addresses)
+		/// <summary>
+		/// Reads a value of the specified type at the specified address. This method is used if multiple-pointer dereferences
+		/// are required.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
+		/// <param name="addresses">The addresses.</param>
+		/// <returns></returns>
+		/// <exception cref="BlueRainReadException">Thrown if the ReadProcessMemory operation fails, or doesn't return the specified amount of bytes.</exception>
+		/// <exception cref="MissingMethodException">The class specified by <paramref name="T" /> does not have an accessible default constructor. </exception>
+		/// <exception cref="ArgumentException">Address may not be zero, and count may not be zero.</exception>
+		/// <exception cref="OverflowException">On a 64-bit platform, the value of this instance is too large or too small to represent as a 32-bit signed integer. </exception>
+		public override async Task<T> Read<T>(bool isRelative = false, params IntPtr[] addresses)
 		{
-			throw new NotImplementedException();
+			Requires.Condition(() => addresses.Length > 0, "addresses");
+			Requires.NotEqual(addresses[0], IntPtr.Zero, "addresses");
+
+			// We can just read right away if it's a single address - avoid the hassle.
+			if (addresses.Length == 1)
+				return await Read<T>(addresses[0], isRelative);
+
+			IntPtr tempPtr = await Read<IntPtr>(addresses[0], isRelative);
+
+			for (int i = 1; i < addresses.Length - 1; i++)
+				tempPtr = await Read<IntPtr>(tempPtr + addresses[i].ToInt32(), isRelative);
+
+			return await Read<T>(tempPtr, isRelative);
 		}
 
-		public override Task Write<T>(IntPtr address, T value, bool isRelative = false)
+		/// <summary>
+		/// Writes the specified value at the specfied address.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="address">The address.</param>
+		/// <param name="value">The value.</param>
+		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
+		/// <returns></returns>
+		/// <exception cref="OverflowException">The array is multidimensional and contains more than <see cref="F:System.Int32.MaxValue" /> elements.</exception>
+		/// <exception cref="BlueRainWriteException">WriteProcessMemory failed.</exception>
+		/// <exception cref="ArgumentException"><paramref name="structure" /> is a reference type that is not a formatted class. </exception>
+		public override unsafe async Task Write<T>(IntPtr address, T value, bool isRelative = false)
 		{
-			throw new NotImplementedException();
+			Requires.NotEqual(address, IntPtr.Zero, "address");
+
+			// TODO: Optimize this method to take marshalling requirements into account
+
+			var size = MarshalCache<T>.Size;
+			var buffer = new byte[size];
+
+			fixed (byte* b = buffer)
+				Marshal.StructureToPtr(value, (IntPtr)b, true);
+
+			WriteBytes(address, buffer, isRelative);
 		}
 
-		public override Task Write<T>(bool isRelative, T value = default(T), params IntPtr[] addresses)
-		{
-			throw new NotImplementedException();
+		/// <summary>
+		/// Writes the specified value at the specified address. This method is used if multiple-pointer dereferences are
+		/// required.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
+		/// <param name="value">The value.</param>
+		/// <param name="addresses">The addresses.</param>
+		/// <returns></returns>
+		/// <exception cref="MissingMethodException">The class specified by <paramref name="T" /> does not have an accessible default constructor. </exception>
+		/// <exception cref="BlueRainReadException">Thrown if the ReadProcessMemory operation fails, or doesn't return the specified amount of bytes.</exception>
+		/// <exception cref="BlueRainWriteException">WriteProcessMemory failed.</exception>
+		public override async Task Write<T>(bool isRelative, T value = default(T), params IntPtr[] addresses)
+		{ 
+			Requires.Condition(() => addresses.Length > 0, "addresses");
+			Requires.NotEqual(addresses[0], IntPtr.Zero, "addresses");
+
+			// If a single addr is passed, just write it right away.
+			if (addresses.Length == 1)
+			{
+				await Write(addresses[0], value, isRelative);
+				return;
+			}
+
+			// Same thing as sequential reads - we read until we find the last addr, then we write to it.
+			IntPtr tempPtr = await Read<IntPtr>(addresses[0]);
+
+			for (int i = 1; i < addresses.Length - 1; i++)
+				tempPtr = await Read<IntPtr>(tempPtr + addresses[i].ToInt32());
+
+			await Write(tempPtr + addresses.Last().ToInt32(), value, isRelative);
 		}
 
 		#endregion
