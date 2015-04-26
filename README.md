@@ -1,7 +1,7 @@
 BlueRain
 =====
 
-Managed, fully feature memory manipulation library written in (mostly) C# providing an easy to use .NET 4.5 and up TAP API.
+Managed, fully feature memory manipulation library written in (mostly) C# providing an easy to use API.
 
 BlueRain is essentially a continuation of Hyperion, and is currently the only open-source part of the xRain framework.
 
@@ -26,7 +26,7 @@ The main API of BlueRain is exposed through two types:
 * `ExternalProcessMemory` for external process manipulation - can be used on any process
 * `InternalProcessMemory` for internal (injected) process manipulation - requires the CLR to be present 
 
-Both implement the `NativeMemory` base class, and provide various generic `Read<T>` and `Write<T>` method, as well as implementation-specific other members.
+Both implement the `NativeMemory` base class, and provide various generic `Read<T>` and `Write<T>` methods, as well as implementation-specific other members.
 
 Most of the API is IntelliSense documented - IntelliSense XML can be generated on build.
 
