@@ -127,7 +127,7 @@ namespace BlueRain
 			Requires.NotEqual(address, IntPtr.Zero, "address");
 			Requires.NotNull(encoding, "encoding");
 
-			var buffer = await ReadBytes(address, maximumLength, isRelative);
+			var buffer = ReadBytes(address, maximumLength, isRelative);
 			var ret = encoding.GetString(buffer);
 			if (ret.IndexOf('\0') != -1)
 			{
@@ -165,7 +165,7 @@ namespace BlueRain
 				value += '\0';
 			}
 
-			await WriteBytes(address, encoding.GetBytes(value), isRelative);
+			WriteBytes(address, encoding.GetBytes(value), isRelative);
 		}
 
 		#region Memory Reading / Writing Methods
@@ -177,7 +177,7 @@ namespace BlueRain
 		/// <param name="count">The count.</param>
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <returns></returns>
-		public abstract Task<byte[]> ReadBytes(IntPtr address, int count, bool isRelative = false);
+		public abstract byte[] ReadBytes(IntPtr address, int count, bool isRelative = false);
 
 		/// <summary>
 		///     Writes the specified bytes at the specified address.
@@ -186,7 +186,7 @@ namespace BlueRain
 		/// <param name="bytes">The bytes.</param>
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <returns></returns>
-		public abstract Task WriteBytes(IntPtr address, byte[] bytes, bool isRelative = false);
+		public abstract void WriteBytes(IntPtr address, byte[] bytes, bool isRelative = false);
 
 		/// <summary>
 		///     Reads a value of the specified type at the specified address.
@@ -195,7 +195,7 @@ namespace BlueRain
 		/// <param name="address">The address.</param>
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <returns></returns>
-		public abstract Task<T> Read<T>(IntPtr address, bool isRelative = false) where T : struct;
+		public abstract T Read<T>(IntPtr address, bool isRelative = false) where T : struct;
 
 		/// <summary>
 		///     Reads the specified amount of values of the specified type at the specified address.
@@ -205,7 +205,7 @@ namespace BlueRain
 		/// <param name="count">The count.</param>
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <returns></returns>
-		public abstract Task<T[]> Read<T>(IntPtr address, int count, bool isRelative = false) where T : struct;
+		public abstract T[] Read<T>(IntPtr address, int count, bool isRelative = false) where T : struct;
 
 		/// <summary>
 		///     Reads a value of the specified type at the specified address. This method is used if multiple-pointer dereferences
@@ -215,7 +215,7 @@ namespace BlueRain
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <param name="addresses">The addresses.</param>
 		/// <returns></returns>
-		public abstract Task<T> Read<T>(bool isRelative = false, params IntPtr[] addresses) where T : struct;
+		public abstract T Read<T>(bool isRelative = false, params IntPtr[] addresses) where T : struct;
 
 		/// <summary>
 		///     Writes the specified value at the specfied address.
@@ -225,7 +225,7 @@ namespace BlueRain
 		/// <param name="value">The value.</param>
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <returns></returns>
-		public abstract Task Write<T>(IntPtr address, T value, bool isRelative = false) where T : struct;
+		public abstract void Write<T>(IntPtr address, T value, bool isRelative = false) where T : struct;
 
 		/// <summary>
 		///     Writes the specified value at the specified address. This method is used if multiple-pointer dereferences are
@@ -236,7 +236,7 @@ namespace BlueRain
 		/// <param name="value">The value.</param>
 		/// <param name="addresses">The addresses.</param>
 		/// <returns></returns>
-		public abstract Task Write<T>(bool isRelative, T value = default(T), params IntPtr[] addresses) where T : struct;
+		public abstract void Write<T>(bool isRelative, T value = default(T), params IntPtr[] addresses) where T : struct;
 
 		#endregion
 

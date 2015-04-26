@@ -90,7 +90,7 @@ namespace BlueRain
 		/// <returns></returns>
 		/// <exception cref="ArgumentException">Address may not be zero, and count may not be zero.</exception>
 		/// <exception cref="BlueRainReadException">Thrown if the ReadProcessMemory operation fails, or doesn't return the specified amount of bytes.</exception>
-		public override unsafe async Task<byte[]> ReadBytes(IntPtr address, int count, bool isRelative = false)
+		public override unsafe byte[] ReadBytes(IntPtr address, int count, bool isRelative = false)
 		{
 			Requires.NotEqual(count, 0, "count");
 			Requires.NotEqual(address, IntPtr.Zero, "address");
@@ -121,7 +121,7 @@ namespace BlueRain
 		/// <returns></returns>
 		/// <exception cref="BlueRain.Common.BlueRainWriteException"></exception>
 		/// <exception cref="OverflowException">The array is multidimensional and contains more than <see cref="F:System.Int32.MaxValue" /> elements.</exception>
-		public override async Task WriteBytes(IntPtr address, byte[] bytes, bool isRelative = false)
+		public override void WriteBytes(IntPtr address, byte[] bytes, bool isRelative = false)
 		{
 			Requires.NotEqual(address, IntPtr.Zero, "address");
 			Requires.NotEqual(bytes.Length, 0, "bytes");
@@ -152,13 +152,13 @@ namespace BlueRain
 		/// <exception cref="ArgumentException">Address may not be zero, and count may not be zero.</exception>
 		/// <exception cref="BlueRainReadException">Thrown if the ReadProcessMemory operation fails, or doesn't return the specified amount of bytes.</exception>
 		/// <exception cref="MissingMethodException">The class specified by <paramref name="T" /> does not have an accessible default constructor. </exception>
-		public override unsafe async Task<T> Read<T>(IntPtr address, bool isRelative = false)
+		public override unsafe T Read<T>(IntPtr address, bool isRelative = false)
 		{
 			Requires.NotEqual(address, IntPtr.Zero, "address");
 
 			var size = MarshalCache<T>.Size;
 			// Unsafe context doesn't allow for the use of await - run the read synchronously.
-			var buffer = ReadBytes(address, size, isRelative).Result;
+			var buffer = ReadBytes(address, size, isRelative);
 
 			fixed (byte* b = buffer)
 				return Marshal.PtrToStructure<T>((IntPtr) b);
@@ -175,7 +175,7 @@ namespace BlueRain
 		/// <exception cref="ArgumentException">Address may not be zero, and count may not be zero.</exception>
 		/// <exception cref="BlueRainReadException">Thrown if the ReadProcessMemory operation fails, or doesn't return the specified amount of bytes.</exception>
 		/// <exception cref="MissingMethodException">The class specified by <paramref name="T" /> does not have an accessible default constructor. </exception>
-		public override async Task<T[]> Read<T>(IntPtr address, int count, bool isRelative = false)
+		public override T[] Read<T>(IntPtr address, int count, bool isRelative = false)
 		{
 			Requires.NotEqual(address, IntPtr.Zero, "address");
 
@@ -185,7 +185,7 @@ namespace BlueRain
 
 			// Read = add + n * size
 			for (int i = 0; i < count; i++)
-				ret[i] = await Read<T>(address + (i*size), isRelative);
+				ret[i] = Read<T>(address + (i*size), isRelative);
 
 			return ret;
 		}
@@ -202,21 +202,21 @@ namespace BlueRain
 		/// <exception cref="MissingMethodException">The class specified by <paramref name="T" /> does not have an accessible default constructor. </exception>
 		/// <exception cref="ArgumentException">Address may not be zero, and count may not be zero.</exception>
 		/// <exception cref="OverflowException">On a 64-bit platform, the value of this instance is too large or too small to represent as a 32-bit signed integer. </exception>
-		public override async Task<T> Read<T>(bool isRelative = false, params IntPtr[] addresses)
+		public override T Read<T>(bool isRelative = false, params IntPtr[] addresses)
 		{
 			Requires.Condition(() => addresses.Length > 0, "addresses");
 			Requires.NotEqual(addresses[0], IntPtr.Zero, "addresses");
 
 			// We can just read right away if it's a single address - avoid the hassle.
 			if (addresses.Length == 1)
-				return await Read<T>(addresses[0], isRelative);
+				return Read<T>(addresses[0], isRelative);
 
-			IntPtr tempPtr = await Read<IntPtr>(addresses[0], isRelative);
+			IntPtr tempPtr = Read<IntPtr>(addresses[0], isRelative);
 
 			for (int i = 1; i < addresses.Length - 1; i++)
-				tempPtr = await Read<IntPtr>(tempPtr + addresses[i].ToInt32(), isRelative);
+				tempPtr = Read<IntPtr>(tempPtr + addresses[i].ToInt32(), isRelative);
 
-			return await Read<T>(tempPtr, isRelative);
+			return Read<T>(tempPtr, isRelative);
 		}
 
 		/// <summary>
@@ -230,7 +230,7 @@ namespace BlueRain
 		/// <exception cref="OverflowException">The array is multidimensional and contains more than <see cref="F:System.Int32.MaxValue" /> elements.</exception>
 		/// <exception cref="BlueRainWriteException">WriteProcessMemory failed.</exception>
 		/// <exception cref="ArgumentException"><paramref name="structure" /> is a reference type that is not a formatted class. </exception>
-		public override unsafe async Task Write<T>(IntPtr address, T value, bool isRelative = false)
+		public override unsafe void Write<T>(IntPtr address, T value, bool isRelative = false)
 		{
 			Requires.NotEqual(address, IntPtr.Zero, "address");
 
@@ -257,7 +257,8 @@ namespace BlueRain
 		/// <exception cref="MissingMethodException">The class specified by <paramref name="T" /> does not have an accessible default constructor. </exception>
 		/// <exception cref="BlueRainReadException">Thrown if the ReadProcessMemory operation fails, or doesn't return the specified amount of bytes.</exception>
 		/// <exception cref="BlueRainWriteException">WriteProcessMemory failed.</exception>
-		public override async Task Write<T>(bool isRelative, T value = default(T), params IntPtr[] addresses)
+		/// <exception cref="OverflowException">The array is multidimensional and contains more than <see cref="F:System.Int32.MaxValue" /> elements.</exception>
+		public override void Write<T>(bool isRelative, T value = default(T), params IntPtr[] addresses)
 		{ 
 			Requires.Condition(() => addresses.Length > 0, "addresses");
 			Requires.NotEqual(addresses[0], IntPtr.Zero, "addresses");
@@ -265,17 +266,17 @@ namespace BlueRain
 			// If a single addr is passed, just write it right away.
 			if (addresses.Length == 1)
 			{
-				await Write(addresses[0], value, isRelative);
+				Write(addresses[0], value, isRelative);
 				return;
 			}
 
 			// Same thing as sequential reads - we read until we find the last addr, then we write to it.
-			IntPtr tempPtr = await Read<IntPtr>(addresses[0]);
+			IntPtr tempPtr = Read<IntPtr>(addresses[0]);
 
 			for (int i = 1; i < addresses.Length - 1; i++)
-				tempPtr = await Read<IntPtr>(tempPtr + addresses[i].ToInt32());
+				tempPtr = Read<IntPtr>(tempPtr + addresses[i].ToInt32());
 
-			await Write(tempPtr + addresses.Last().ToInt32(), value, isRelative);
+			Write(tempPtr + addresses.Last().ToInt32(), value, isRelative);
 		}
 
 		#endregion
