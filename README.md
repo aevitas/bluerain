@@ -30,6 +30,11 @@ Both implement the `NativeMemory` base class, and provide various generic `Read<
 
 Most of the API is IntelliSense documented - IntelliSense XML can be generated on build.
 
+Tests
+=====
+
+BlueRain uses MSTest for its unit tests. These are contained in a stand-alone BlueRain.Tests solution. While the aim is to attain 100% coverage, coverage should never fall below 75%.
+
 Contributing
 =====
 Pull requests are very welcome, as long as they are accompanied by an issue with a clear description of what problem the PR is addressing. Please be as detailed as possible in your issue reports.
