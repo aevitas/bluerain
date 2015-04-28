@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -170,6 +171,69 @@ namespace BlueRain
 			WriteBytes(address, encoding.GetBytes(value), isRelative);
 		}
 
+		/// <summary>
+		/// Reads a value of the specified type at the specified address. This method is used if multiple-pointer dereferences
+		/// are required.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
+		/// <param name="addresses">The addresses.</param>
+		/// <returns></returns>
+		/// <exception cref="BlueRainReadException">Thrown if the ReadProcessMemory operation fails, or doesn't return the specified amount of bytes.</exception>
+		/// <exception cref="MissingMethodException">The class specified by <paramref name="T" /> does not have an accessible default constructor. </exception>
+		/// <exception cref="ArgumentException">Address may not be zero, and count may not be zero.</exception>
+		/// <exception cref="OverflowException">On a 64-bit platform, the value of this instance is too large or too small to represent as a 32-bit signed integer. </exception>
+		public virtual T Read<T>(bool isRelative = false, params IntPtr[] addresses) where T : struct
+		{
+			Requires.Condition(() => addresses.Length > 0, "addresses");
+			Requires.NotEqual(addresses[0], IntPtr.Zero, "addresses");
+
+			// We can just read right away if it's a single address - avoid the hassle.
+			if (addresses.Length == 1)
+				return Read<T>(addresses[0], isRelative);
+
+			IntPtr tempPtr = Read<IntPtr>(addresses[0], isRelative);
+
+			for (int i = 1; i < addresses.Length - 1; i++)
+				tempPtr = Read<IntPtr>(tempPtr + addresses[i].ToInt32(), isRelative);
+
+			return Read<T>(tempPtr, isRelative);
+		}
+
+		/// <summary>
+		/// Writes the specified value at the specified address. This method is used if multiple-pointer dereferences are
+		/// required.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
+		/// <param name="value">The value.</param>
+		/// <param name="addresses">The addresses.</param>
+		/// <returns></returns>
+		/// <exception cref="MissingMethodException">The class specified by <paramref name="T" /> does not have an accessible default constructor. </exception>
+		/// <exception cref="BlueRainReadException">Thrown if the ReadProcessMemory operation fails, or doesn't return the specified amount of bytes.</exception>
+		/// <exception cref="BlueRainWriteException">WriteProcessMemory failed.</exception>
+		/// <exception cref="OverflowException">The array is multidimensional and contains more than <see cref="F:System.Int32.MaxValue" /> elements.</exception>
+		public virtual void Write<T>(bool isRelative, T value = default(T), params IntPtr[] addresses) where T : struct
+		{
+			Requires.Condition(() => addresses.Length > 0, "addresses");
+			Requires.NotEqual(addresses[0], IntPtr.Zero, "addresses");
+
+			// If a single addr is passed, just write it right away.
+			if (addresses.Length == 1)
+			{
+				Write(addresses[0], value, isRelative);
+				return;
+			}
+
+			// Same thing as sequential reads - we read until we find the last addr, then we write to it.
+			IntPtr tempPtr = Read<IntPtr>(addresses[0]);
+
+			for (int i = 1; i < addresses.Length - 1; i++)
+				tempPtr = Read<IntPtr>(tempPtr + addresses[i].ToInt32());
+
+			Write(tempPtr + addresses.Last().ToInt32(), value, isRelative);
+		}
+
 		#region Memory Reading / Writing Methods
 
 		/// <summary>
@@ -210,16 +274,6 @@ namespace BlueRain
 		public abstract T[] Read<T>(IntPtr address, int count, bool isRelative = false) where T : struct;
 
 		/// <summary>
-		///     Reads a value of the specified type at the specified address. This method is used if multiple-pointer dereferences
-		///     are required.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
-		/// <param name="addresses">The addresses.</param>
-		/// <returns></returns>
-		public abstract T Read<T>(bool isRelative = false, params IntPtr[] addresses) where T : struct;
-
-		/// <summary>
 		///     Writes the specified value at the specfied address.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
@@ -228,17 +282,6 @@ namespace BlueRain
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <returns></returns>
 		public abstract void Write<T>(IntPtr address, T value, bool isRelative = false) where T : struct;
-
-		/// <summary>
-		///     Writes the specified value at the specified address. This method is used if multiple-pointer dereferences are
-		///     required.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
-		/// <param name="value">The value.</param>
-		/// <param name="addresses">The addresses.</param>
-		/// <returns></returns>
-		public abstract void Write<T>(bool isRelative, T value = default(T), params IntPtr[] addresses) where T : struct;
 
 		#endregion
 
