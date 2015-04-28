@@ -1,7 +1,7 @@
 BlueRain
 =====
 
-Managed, fully feature memory manipulation library written in (mostly) C# providing an easy to use API.
+Managed, fully featured memory manipulation library written in (mostly) C# providing an easy to use API.
 
 BlueRain is essentially a continuation of Hyperion, and is currently the only open-source part of the xRain framework.
 
