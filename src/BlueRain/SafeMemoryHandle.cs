@@ -25,21 +25,9 @@ namespace BlueRain
 		{
 		}
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="SafeMemoryHandle"/> class.
-		/// </summary>
-		/// <param name="handle">The handle.</param>
-		[SecurityPermission(SecurityAction.LinkDemand, UnmanagedCode = true)]
-		public SafeMemoryHandle(IntPtr handle)
-			: base(true)
-		{
-			SetHandle(handle);
-		}
-
 		[DllImport("kernel32.dll", SetLastError = true)]
 		[return: MarshalAs(UnmanagedType.Bool)]
 		protected internal static extern bool CloseHandle(IntPtr hObject);
-
 
 		#region Overrides of SafeHandle
 

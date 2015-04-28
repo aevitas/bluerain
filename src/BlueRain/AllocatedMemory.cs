@@ -46,6 +46,8 @@ namespace BlueRain
 			IsAllocated = true;
 		}
 
+		#region Reading / Writing Methods
+
 		/// <summary>
 		/// Reads a value of the specified type at the specified offset, relative to the address of the allocated chunk.
 		/// </summary>
@@ -89,6 +91,8 @@ namespace BlueRain
 		{
 			Memory.WriteString(Address + offset.ToInt32(), value, encoding);
 		}
+
+		#endregion
 
 		#region Implementation of IDisposable
 

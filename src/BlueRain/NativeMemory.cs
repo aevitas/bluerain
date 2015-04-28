@@ -43,7 +43,7 @@ namespace BlueRain
 		/// <summary>
 		///     Gets or sets the base address of the wrapped process' main module.
 		/// </summary>
-		protected IntPtr BaseAddress
+		public IntPtr BaseAddress
 		{
 			[Pure] get { return _baseAddress; }
 			set

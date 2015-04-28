@@ -21,16 +21,6 @@ namespace BlueRain.Common
 			: base(message)
 		{
 		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="BlueRainException"/> class.
-		/// </summary>
-		/// <param name="message">The message.</param>
-		/// <param name="inner">The inner.</param>
-		public BlueRainException(string message, Exception inner)
-			: base(message, inner)
-		{
-		}
 	}
 
 	/// <summary>
@@ -46,16 +36,7 @@ namespace BlueRain.Common
 			: base(message)
 		{
 		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="BlueRainReadException"/> class.
-		/// </summary>
-		/// <param name="message">The message.</param>
-		/// <param name="inner">The inner.</param>
-		public BlueRainReadException(string message, Exception inner)
-			: base(message, inner)
-		{
-		}
+		
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BlueRainReadException"/> class.
@@ -80,16 +61,6 @@ namespace BlueRain.Common
 		/// <param name="message">The message that describes the error.</param>
 		public BlueRainWriteException(string message)
 			: base(message)
-		{
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="BlueRainWriteException"/> class.
-		/// </summary>
-		/// <param name="message">The message.</param>
-		/// <param name="inner">The inner.</param>
-		public BlueRainWriteException(string message, Exception inner)
-			: base(message, inner)
 		{
 		}
 
