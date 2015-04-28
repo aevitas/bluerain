@@ -8,12 +8,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace BlueRain.Tests
 {
 	[TestClass]
-	public class ExternalMemoryTests
+	public unsafe class ExternalMemoryTests
 	{
 		private static readonly ExternalProcessMemory Memory = new ExternalProcessMemory(Process.GetCurrentProcess());
 
 		[TestMethod]
-		public unsafe void ReadInt32()
+		public void ReadInt32()
 		{
 			int x = 5;
 			var ret = Memory.Read<int>(new IntPtr(&x));
@@ -68,10 +68,14 @@ namespace BlueRain.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(BlueRainReadException))]
 		public void MultipleReads()
 		{
-			Memory.Read<int>(new IntPtr(0x1000), 10);
+			var vec = new Vector3() { X = 1, Y = 2, Z = 3 };
+			var ret = Memory.Read<float>(new IntPtr(&vec), 3);
+
+			Assert.IsTrue(Math.Abs(ret[0] - vec.X) < 0.0001f);
+			Assert.IsTrue(Math.Abs(ret[1] - vec.Y) < 0.0001f);
+			Assert.IsTrue(Math.Abs(ret[2] - vec.Z) < 0.0001f);
 		}
 
 		[TestMethod]
@@ -85,15 +89,17 @@ namespace BlueRain.Tests
 		[ExpectedException(typeof(BlueRainReadException))]
 		public void WriteMultipleVals()
 		{
+			int x = 10;
+
 			// This will throw a read exception because it has to read to deref.
-			Memory.Write(true, 1, new IntPtr(0x10), new IntPtr(0x30), new IntPtr(0x1000));
+			Memory.Write(true, 1, new IntPtr(&x), new IntPtr(0x0), new IntPtr(0x0));
 		}
 
 		[TestMethod]
 		[ExpectedException(typeof(BlueRainReadException))]
 		public void ReadMultipleVals()
 		{
-			Memory.Read<int>(true, new IntPtr(0x10), new IntPtr(0x20), new IntPtr(0x1000));
+			Memory.Read<int>(true, new IntPtr(0x1000), new IntPtr(0x20), new IntPtr(0x1000));
 		}
 
 		internal enum TestEnum
@@ -145,6 +151,27 @@ namespace BlueRain.Tests
 		{
 			string a = null;
 			Requires.NotNull(a, "lol");
+		}
+
+		[TestMethod]
+		public void DisposeMemory()
+		{
+			var epm = new ExternalProcessMemory(Process.GetCurrentProcess());
+
+			epm.Dispose();
+
+			Assert.IsTrue(epm.IsDisposed);
+
+			epm.Dispose();
+		}
+
+
+		// Simple struct of 12 bytes used for sequential read/write tests.
+		private struct Vector3
+		{
+			public float X { get; set; }
+			public float Y { get; set; }
+			public float Z { get; set; }
 		}
 	}
 }

@@ -310,6 +310,9 @@ namespace BlueRain
 		/// </summary>
 		public override void Dispose()
 		{
+			if (IsDisposed)
+				return;
+
 			if (ProcessHandle != null)
 				ProcessHandle.Dispose();
 

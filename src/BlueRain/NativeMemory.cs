@@ -22,6 +22,8 @@ namespace BlueRain
 		private IntPtr _baseAddress;
 		private int _fastBaseAddress;
 
+		public bool IsDisposed { get; private set; }
+
 		/// <summary>
 		///     Initializes a new instance of the <see cref="NativeMemory" /> class.
 		/// </summary>
@@ -257,8 +259,13 @@ namespace BlueRain
 		/// </summary>
 		public virtual void Dispose()
 		{
+			if (IsDisposed)
+				return;
+
 			// Pretty much all we "have" to clean up.
 			Process.LeaveDebugMode();
+
+			IsDisposed = true;
 		}
 
 		#endregion
