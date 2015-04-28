@@ -121,7 +121,7 @@ namespace BlueRain
 		///		complete explanation)-and-<see cref="P:System.Text.Encoding.DecoderFallback" /> is set to 
 		///		<see cref="T:System.Text.DecoderExceptionFallback" />.
 		/// </exception>
-		public virtual async Task<string> ReadString(IntPtr address, Encoding encoding, int maximumLength = 512,
+		public virtual string ReadString(IntPtr address, Encoding encoding, int maximumLength = 512,
 			bool isRelative = false)
 		{
 			Requires.NotEqual(address, IntPtr.Zero, "address");
@@ -155,7 +155,7 @@ namespace BlueRain
 		///     complete explanation)-and-<see cref="P:System.Text.Encoding.EncoderFallback" /> is set to
 		///     <see cref="T:System.Text.EncoderExceptionFallback" />.
 		/// </exception>
-		public virtual async Task WriteString(IntPtr address, string value, Encoding encoding, bool isRelative = false)
+		public virtual void WriteString(IntPtr address, string value, Encoding encoding, bool isRelative = false)
 		{
 			Requires.NotEqual(address, IntPtr.Zero, "address");
 			Requires.NotNull(encoding, "encoding");
@@ -247,10 +247,6 @@ namespace BlueRain
 
 		[DllImport("kernel32.dll")]
 		protected static extern SafeMemoryHandle OpenThread(ThreadAccess dwDesiredAccess, bool bInheritHandle, uint dwThreadId);
-
-		[DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
-		static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress,
-		   uint dwSize, AllocationType flAllocationType, MemoryProtection flProtect);
 
 		#endregion
 

@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using BlueRain.Common;
 
 namespace BlueRain
@@ -16,7 +15,7 @@ namespace BlueRain
 	/// </summary>
 	public class ExternalProcessMemory : NativeMemory
 	{
-		private SafeMemoryHandle _processHandle;
+		internal readonly SafeMemoryHandle ProcessHandle;
 		private SafeMemoryHandle _mainThreadHandle;
 
 		/// <summary>
@@ -29,7 +28,7 @@ namespace BlueRain
 		public ExternalProcessMemory(Process process,
 			ProcessAccess access) : base(process)
 		{
-			_processHandle = OpenProcess(access, false, process.Id);
+			ProcessHandle = OpenProcess(access, false, process.Id);
 
 			// Obtain a handle to the process' main thread so we can suspend/resume it whenever we need to.0
 			_mainThreadHandle = OpenThread(ThreadAccess.ALL, false, (uint) process.Threads[0].Id);
@@ -51,9 +50,28 @@ namespace BlueRain
 		{
 		}
 
-		public AllocatedMemory Allocate()
+		// VirtualAllocEx specifies size as a size_t - we'll use the .NET equivalent.
+		private IntPtr AllocateMemory(UIntPtr size)
 		{
-			return new AllocatedMemory();
+			return VirtualAllocEx(ProcessHandle, IntPtr.Zero, size, AllocationType.Commit, MemoryProtection.ExecuteReadWrite);
+		}
+
+		/// <summary>
+		/// Allocates a chunk of memory of the specified size in the remote process.
+		/// </summary>
+		/// <param name="size">The size.</param>
+		/// <returns></returns>
+		/// <exception cref="BlueRainException"></exception>
+		public AllocatedMemory Allocate(UIntPtr size)
+		{
+			var chunk = AllocateMemory(size);
+
+			if (chunk != IntPtr.Zero)
+			{
+				return new AllocatedMemory(chunk, size.ToUInt32(), this);
+			}
+
+			throw new BlueRainException(string.Format("Couldn't allocate {0} sized chunk!", size.ToUInt32()));
 		}
 
 		#region P/Invokes
@@ -76,6 +94,10 @@ namespace BlueRain
 		[DllImport("kernel32.dll")]
 		private static extern bool VirtualProtectEx(
 			SafeMemoryHandle hProcess, IntPtr lpAddress, IntPtr dwSize, uint flNewProtect, out uint lpflOldProtect);
+
+		[DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+		static extern IntPtr VirtualAllocEx(SafeMemoryHandle hProcess, IntPtr lpAddress,
+		   UIntPtr dwSize, AllocationType flAllocationType, MemoryProtection flProtect);
 
 		#endregion
 
@@ -105,7 +127,7 @@ namespace BlueRain
 			fixed (byte* b = buffer)
 			{
 				int numRead;
-				if (ReadProcessMemory(_processHandle, address, b, count, out numRead) && numRead == count)
+				if (ReadProcessMemory(ProcessHandle, address, b, count, out numRead) && numRead == count)
 					return buffer;
 			}
 
@@ -131,10 +153,10 @@ namespace BlueRain
 
 			// dwSize is a size_t, meaning it *may* differ depending architecture. Though very unlikely to cause trouble if 
 			// defined as uint, we're passing it as IntPtr here as it is the closest .NET equivalent.
-			VirtualProtectEx(_processHandle, address, (IntPtr) bytes.Length, (uint) MemoryProtection.ExecuteReadWrite,
+			VirtualProtectEx(ProcessHandle, address, (IntPtr) bytes.Length, (uint) MemoryProtection.ExecuteReadWrite,
 				out oldProtect);
-			WriteProcessMemory(_processHandle, address, bytes, bytes.Length, out numWritten);
-			VirtualProtectEx(_processHandle, address, (IntPtr) bytes.Length, oldProtect, out oldProtect);
+			WriteProcessMemory(ProcessHandle, address, bytes, bytes.Length, out numWritten);
+			VirtualProtectEx(ProcessHandle, address, (IntPtr) bytes.Length, oldProtect, out oldProtect);
 
 			// All we need to check - if WriteProcessMemory fails numWriten will be 0.
 			var success = numWritten == bytes.Length;
