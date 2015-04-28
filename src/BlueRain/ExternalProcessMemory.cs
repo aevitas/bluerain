@@ -302,5 +302,23 @@ namespace BlueRain
 		}
 
 		#endregion
+
+		#region Implementation of IDisposable
+
+		/// <summary>
+		/// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+		/// </summary>
+		public override void Dispose()
+		{
+			if (ProcessHandle != null)
+				ProcessHandle.Dispose();
+
+			if (_mainThreadHandle != null)
+				_mainThreadHandle.Dispose();
+
+			base.Dispose();
+		}
+
+		#endregion
 	}
 }
