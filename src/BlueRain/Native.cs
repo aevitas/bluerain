@@ -23,7 +23,7 @@ namespace BlueRain
 	}
 
 	[Flags]
-	public enum ProcessAccessFlags : uint
+	public enum ProcessAccess : uint
 	{
 		All = 0x001F0FFF,
 		Terminate = 0x00000001,
@@ -38,15 +38,32 @@ namespace BlueRain
 	}
 
 	[Flags]
-	public enum ProtectionFlags : uint
+	public enum AllocationType
+	{
+		Commit = 0x1000,
+		Reserve = 0x2000,
+		Decommit = 0x4000,
+		Release = 0x8000,
+		Reset = 0x80000,
+		Physical = 0x400000,
+		TopDown = 0x100000,
+		WriteWatch = 0x200000,
+		LargePages = 0x20000000
+	}
+
+	[Flags]
+	public enum MemoryProtection
 	{
 		Execute = 0x10,
-		PageExecuteRead = 0x20,
-		PageExecuteReadWrite = 0x40,
-		PageExecuteWriteCopy = 0x80,
-		PageNoAccess = 0x01,
-		PageReadOnly = 0x02,
-		PageReadWrite = 0x04,
-		PageWriteCopy = 0x08
+		ExecuteRead = 0x20,
+		ExecuteReadWrite = 0x40,
+		ExecuteWriteCopy = 0x80,
+		NoAccess = 0x01,
+		ReadOnly = 0x02,
+		ReadWrite = 0x04,
+		WriteCopy = 0x08,
+		GuardModifierflag = 0x100,
+		NoCacheModifierflag = 0x200,
+		WriteCombineModifierflag = 0x400
 	}
 }

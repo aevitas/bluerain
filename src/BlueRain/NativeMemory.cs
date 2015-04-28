@@ -248,6 +248,10 @@ namespace BlueRain
 		[DllImport("kernel32.dll")]
 		protected static extern SafeMemoryHandle OpenThread(ThreadAccess dwDesiredAccess, bool bInheritHandle, uint dwThreadId);
 
+		[DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+		static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress,
+		   uint dwSize, AllocationType flAllocationType, MemoryProtection flProtect);
+
 		#endregion
 
 		#region Implementation of IDisposable

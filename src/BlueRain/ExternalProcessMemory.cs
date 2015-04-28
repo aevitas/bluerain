@@ -23,13 +23,13 @@ namespace BlueRain
 		/// Initializes a new instance of the <see cref="ExternalProcessMemory"/> class.
 		/// </summary>
 		/// <param name="process">The process.</param>
-		/// <param name="accessFlags">The access flags.</param>
+		/// <param name="access">The access flags.</param>
 		/// <exception cref="PlatformNotSupportedException">The platform is Windows 98 or Windows Millennium Edition (Windows Me); set the <see cref="P:System.Diagnostics.ProcessStartInfo.UseShellExecute" /> property to false to access this property on Windows 98 and Windows Me.</exception>
 		/// <exception cref="InvalidOperationException">The process's <see cref="P:System.Diagnostics.Process.Id" /> property has not been set.-or- There is no process associated with this <see cref="T:System.Diagnostics.Process" /> object. </exception>
 		public ExternalProcessMemory(Process process,
-			ProcessAccessFlags accessFlags) : base(process)
+			ProcessAccess access) : base(process)
 		{
-			_processHandle = OpenProcess(accessFlags, false, process.Id);
+			_processHandle = OpenProcess(access, false, process.Id);
 
 			// Obtain a handle to the process' main thread so we can suspend/resume it whenever we need to.0
 			_mainThreadHandle = OpenThread(ThreadAccess.ALL, false, (uint) process.Threads[0].Id);
@@ -40,14 +40,14 @@ namespace BlueRain
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ExternalProcessMemory"/> class.
 		/// This constructor opens a handle to the specified process using the following flags:
-		/// ProcessAccessFlags.CreateThread | ProcessAccessFlags.QueryInformation | ProcessAccessFlags.VMRead | ProcessAccessFlags.VMWrite | ProcessAccessFlags.VMOperation | ProcessAccessFlags.SetInformation
+		/// ProcessAccess.CreateThread | ProcessAccess.QueryInformation | ProcessAccess.VMRead | ProcessAccess.VMWrite | ProcessAccess.VMOperation | ProcessAccess.SetInformation
 		/// </summary>
 		/// <param name="process">The process.</param>
 		/// <exception cref="PlatformNotSupportedException">The platform is Windows 98 or Windows Millennium Edition (Windows Me); set the <see cref="P:System.Diagnostics.ProcessStartInfo.UseShellExecute" /> property to false to access this property on Windows 98 and Windows Me.</exception>
 		/// <exception cref="InvalidOperationException">The process's <see cref="P:System.Diagnostics.Process.Id" /> property has not been set.-or- There is no process associated with this <see cref="T:System.Diagnostics.Process" /> object. </exception>
 		public ExternalProcessMemory(Process process) : this (process,
-				ProcessAccessFlags.CreateThread | ProcessAccessFlags.QueryInformation | ProcessAccessFlags.VMRead |
-				ProcessAccessFlags.VMWrite | ProcessAccessFlags.VMOperation | ProcessAccessFlags.SetInformation)
+				ProcessAccess.CreateThread | ProcessAccess.QueryInformation | ProcessAccess.VMRead |
+				ProcessAccess.VMWrite | ProcessAccess.VMOperation | ProcessAccess.SetInformation)
 		{
 		}
 
@@ -63,7 +63,7 @@ namespace BlueRain
 
 		[DllImport("kernel32.dll")]
 		private static extern SafeMemoryHandle OpenProcess(
-			ProcessAccessFlags dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
+			ProcessAccess dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
 
 		[DllImport("kernel32.dll", SetLastError = true)]
 		private static unsafe extern bool ReadProcessMemory(
@@ -131,7 +131,7 @@ namespace BlueRain
 
 			// dwSize is a size_t, meaning it *may* differ depending architecture. Though very unlikely to cause trouble if 
 			// defined as uint, we're passing it as IntPtr here as it is the closest .NET equivalent.
-			VirtualProtectEx(_processHandle, address, (IntPtr) bytes.Length, (uint) ProtectionFlags.PageExecuteReadWrite,
+			VirtualProtectEx(_processHandle, address, (IntPtr) bytes.Length, (uint) MemoryProtection.ExecuteReadWrite,
 				out oldProtect);
 			WriteProcessMemory(_processHandle, address, bytes, bytes.Length, out numWritten);
 			VirtualProtectEx(_processHandle, address, (IntPtr) bytes.Length, oldProtect, out oldProtect);
