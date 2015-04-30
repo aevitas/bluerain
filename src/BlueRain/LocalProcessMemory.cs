@@ -14,8 +14,9 @@ namespace BlueRain
 		/// Initializes a new instance of the <see cref="LocalProcessMemory"/> class.
 		/// </summary>
 		/// <param name="process">The process.</param>
-		public LocalProcessMemory(Process process) : base(process)
-		{}
+		public LocalProcessMemory(Process process)
+			: base(process)
+		{ }
 
 		/// <summary>
 		/// Reads the specified amount of bytes from the specified address.
@@ -30,7 +31,7 @@ namespace BlueRain
 				address = ToAbsolute(address);
 
 			var buffer = new byte[count];
-			var ptr = (byte*) address;
+			var ptr = (byte*)address;
 
 			for (int i = 0; i < count; i++)
 				buffer[i] = ptr[i];
@@ -49,7 +50,7 @@ namespace BlueRain
 			if (isRelative)
 				address = ToAbsolute(address);
 
-			var ptr = (byte*) address;
+			var ptr = (byte*)address;
 			for (int i = 0; i < bytes.Length; i++)
 				ptr[i] = bytes[i];
 		}
@@ -84,7 +85,7 @@ namespace BlueRain
 
 			var ret = new T[count];
 			for (int i = 0; i < count; i++)
-				ret[i] = Read<T>(address + (MarshalCache<T>.Size*i), isRelative);
+				ret[i] = Read<T>(address + (MarshalCache<T>.Size * i), isRelative);
 
 			return ret;
 		}
@@ -104,7 +105,7 @@ namespace BlueRain
 			Marshal.StructureToPtr(value, address, false);
 		}
 
-		private unsafe T ReadInternal<T>(IntPtr address) where T : struct
+		private T ReadInternal<T>(IntPtr address) where T : struct
 		{
 			var type = MarshalCache<T>.RealType;
 
@@ -114,59 +115,61 @@ namespace BlueRain
 				// If the (value) type doesn't require marshalling, we can simply use MoveMemory to move the entire
 				// thing in one swoop. This is significantly faster than having it go through the Marshal.
 				var ptr = MarshalCache<T>.GetUnsafePtr(ref val);
-				MoveMemory(ptr, (void*) address, MarshalCache<T>.Size);
+				MoveMemory(ptr, (void*)address, MarshalCache<T>.Size);
 
 				return val;
 			}
 
-			object ret = null;
-			var typeCode = Type.GetTypeCode(type);
+			// Have the marshal deal with it for now.
+			return Marshal.PtrToStructure<T>(address);
 
-			// Special case simple value types:
-			// - Boolean
-			// - Byte, SByte
-			// - Char
-			// - Decimal
-			// - Int32, UInt32
-			// - Int64, UInt64
-			// - Int16, UInt16
-			// - IntPtr, UIntPtr
-			// As of .NET 4.5, the (Type)(object)result pattern used below
-			// is recognized and optimized by both 32-bit and 64-bit JITs.
-			// Therefore, do not change this to a switch - JIT won't apply same optimization (it won't box!).
-			if (typeCode == TypeCode.Boolean)
-				ret = *(byte*) address != 0;
-			if (typeCode == TypeCode.Byte)
-				ret = *(byte*) address;
-			if (typeCode == TypeCode.SByte)
-				ret = *(sbyte*) address;
-			if (typeCode == TypeCode.Char)
-				ret = *(char*) address;
-			if (typeCode == TypeCode.Decimal)
-				ret = *(decimal*) address;
-			if (typeCode == TypeCode.Int32)
-				ret = *(int*) address;
-			if (typeCode == TypeCode.UInt32)
-				ret = *(uint*) address;
-			if (typeCode == TypeCode.Int64)
-				ret = *(long*) address;
-			if (typeCode == TypeCode.UInt64)
-				ret = *(ulong*) address;
-			if (typeCode == TypeCode.Int16)
-				ret = *(short*) address;
-			if (typeCode == TypeCode.UInt16)
-				ret = *(ushort*) address;
+			// Scrapped until it can be properly unit tested.
 
-			if (ret == null)
-				ret = Marshal.PtrToStructure<T>(address);
+			//object ret = null;
+			//var typeCode = Type.GetTypeCode(type);
 
-			return (T)ret;
+			//// Special case simple value types:
+			//// - Boolean
+			//// - Byte, SByte
+			//// - Char
+			//// - Decimal
+			//// - Int32, UInt32
+			//// - Int64, UInt64
+			//// - Int16, UInt16
+			//// - IntPtr, UIntPtr
+			//// As of .NET 4.5, the (Type)(object)result pattern used below
+			//// is recognized and optimized by both 32-bit and 64-bit JITs.
+			//// Therefore, do not change this to a switch - JIT won't apply same optimization (it won't box!).
+			//if (typeCode == TypeCode.Boolean)
+			//	ret = *(byte*)address != 0;
+			//if (typeCode == TypeCode.Byte)
+			//	ret = *(byte*)address;
+			//if (typeCode == TypeCode.SByte)
+			//	ret = *(sbyte*)address;
+			//if (typeCode == TypeCode.Char)
+			//	ret = *(char*)address;
+			//if (typeCode == TypeCode.Decimal)
+			//	ret = *(decimal*)address;
+			//if (typeCode == TypeCode.Int32)
+			//	ret = *(int*)address;
+			//if (typeCode == TypeCode.UInt32)
+			//	ret = *(uint*)address;
+			//if (typeCode == TypeCode.Int64)
+			//	ret = *(long*)address;
+			//if (typeCode == TypeCode.UInt64)
+			//	ret = *(ulong*)address;
+			//if (typeCode == TypeCode.Int16)
+			//	ret = *(short*)address;
+			//if (typeCode == TypeCode.UInt16)
+			//	ret = *(ushort*)address;
+
+			//return (T)ret;
 		}
 
 		#region P/Invokes
 
 		[DllImport("Kernel32.dll", EntryPoint = "RtlMoveMemory", SetLastError = false)]
-		private static extern void MoveMemory(void* dest, void* src, int size);
+		private static extern void MoveMemory(void* dst, void* src, int size);
 
 		#endregion
 	}
