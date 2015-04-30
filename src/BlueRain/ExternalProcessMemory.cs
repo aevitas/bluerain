@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using BlueRain.Common;
 
@@ -13,7 +12,7 @@ namespace BlueRain
 	/// Provides functionality for reading from, writing to, and allocating memory in external processes.
 	/// This class relies on a handle to the remote process and to its main thread to perform memory reading and writing.
 	/// </summary>
-	public class ExternalProcessMemory : NativeMemory
+	public sealed class ExternalProcessMemory : NativeMemory
 	{
 		internal readonly SafeMemoryHandle ProcessHandle;
 		private SafeMemoryHandle _mainThreadHandle;
