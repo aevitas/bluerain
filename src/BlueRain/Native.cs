@@ -2,11 +2,29 @@
 // See the file LICENSE for copying permission.
 
 using System;
+using System.Runtime.ConstrainedExecution;
+using System.Runtime.InteropServices;
 
 // ReSharper disable InconsistentNaming
 
 namespace BlueRain
 {
+	internal static class UnsafeNativeMethods
+	{
+		private const string Kernel32 = "kernel32";
+
+		[DllImport(Kernel32, ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
+		internal static extern unsafe SafeLoadLibrary LoadLibraryExW([In] string lpwLibFileName, [In] void* hFile, [In] uint dwFlags);
+
+		[DllImport(Kernel32, ExactSpelling = true, SetLastError = true)]
+		[ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
+		internal static extern bool FreeLibrary([In] IntPtr hModule);
+
+		[DllImport(Kernel32, CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
+		[ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
+		internal static extern IntPtr GetProcAddress([In] IntPtr hModule, [In] string procName);
+	}
+
 	[Flags]
 	public enum ThreadAccess : uint
 	{
@@ -72,5 +90,16 @@ namespace BlueRain
 	{
 		Decommit = 0x4000,
 		Release = 0x8000,
+	}
+
+	[Flags]
+	public enum LoadLibraryExOptions : uint
+	{
+		DontResolveDllReferences = 0x00000001,
+		LoadLibraryAsDatafile = 0x00000002,
+		LoadLibraryWithAlteredSearchPath = 0x00000008,
+		LoadIgnoreCodeAuthzLevel = 0x00000010,
+		LoadLibraryAsImageResource = 0x00000020,
+		LoadLibraryAsDatafileExclusive = 0x00000040
 	}
 }

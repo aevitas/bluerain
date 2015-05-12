@@ -91,10 +91,12 @@
     <Compile Include="Common\MarshalCache.cs" />
     <Compile Include="Common\Requires.cs" />
     <Compile Include="ExternalProcessMemory.cs" />
+    <Compile Include="InjectedModule.cs" />
     <Compile Include="LocalProcessMemory.cs" />
     <Compile Include="Native.cs" />
     <Compile Include="NativeMemory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SafeLibraryHandle.cs" />
     <Compile Include="SafeMemoryHandle.cs" />
   </ItemGroup>
   <ItemGroup>

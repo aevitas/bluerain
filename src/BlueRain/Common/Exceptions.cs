@@ -24,7 +24,7 @@ namespace BlueRain.Common
 	}
 
 	/// <summary>
-	/// Exception thrown when a reading operation fails within the BlueRain framework.
+	/// Exception thrown when a reading operation fails.
 	/// </summary>
 	public class BlueRainReadException : BlueRainException
 	{
@@ -51,7 +51,7 @@ namespace BlueRain.Common
 	}
 
 	/// <summary>
-	/// Exception thrown when a writing operation fails within the BlueRain framework.
+	/// Exception thrown when a writing operation fails.
 	/// </summary>
 	public class BlueRainWriteException : BlueRainException
 	{
@@ -71,6 +71,20 @@ namespace BlueRain.Common
 		/// <param name="count">The count.</param>
 		public BlueRainWriteException(IntPtr address, int count)
 			: this(string.Format("WriteProcessMemory failed! Could not write {0} bytes at {1}!", count, address.ToString("X")))
+		{
+		}
+	}
+
+	/// <summary>
+	/// Exception thrown when an operation related to injection fails.
+	/// </summary>
+	public class BlueRainInjectionException : BlueRainException
+	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="BlueRainInjectionException"/> class.
+		/// </summary>
+		/// <param name="message">The message that describes the error.</param>
+		public BlueRainInjectionException(string message) : base(message)
 		{
 		}
 	}
