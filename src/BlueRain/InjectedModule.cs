@@ -20,9 +20,14 @@ namespace BlueRain
 		/// <summary>
 		/// Gets the base address of this module in the target process.
 		/// </summary>
-		public IntPtr BaseAddress { get { return Module.BaseAddress; } }
+		public IntPtr BaseAddress
+		{
+			get { return Module.BaseAddress; }
+		}
 
-		private InjectedModule() { } // Hide the default constructor
+		private InjectedModule()
+		{
+		} // Hide the default constructor
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="InjectedModule"/> class.

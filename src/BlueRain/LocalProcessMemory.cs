@@ -11,7 +11,7 @@ namespace BlueRain
 	/// <summary>
 	/// Provides memory manipulation functionality for local processes; ie. injected.
 	/// </summary>
-	public unsafe sealed class LocalProcessMemory : NativeMemory
+	public sealed unsafe class LocalProcessMemory : NativeMemory
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LocalProcessMemory"/> class.
@@ -19,7 +19,8 @@ namespace BlueRain
 		/// <param name="process">The process.</param>
 		public LocalProcessMemory(Process process)
 			: base(process)
-		{ }
+		{
+		}
 
 		/// <summary>
 		/// Reads the specified amount of bytes from the specified address.
@@ -34,7 +35,7 @@ namespace BlueRain
 				address = ToAbsolute(address);
 
 			var buffer = new byte[count];
-			var ptr = (byte*)address;
+			var ptr = (byte*) address;
 
 			for (int i = 0; i < count; i++)
 				buffer[i] = ptr[i];
@@ -53,7 +54,7 @@ namespace BlueRain
 			if (isRelative)
 				address = ToAbsolute(address);
 
-			var ptr = (byte*)address;
+			var ptr = (byte*) address;
 			for (int i = 0; i < bytes.Length; i++)
 				ptr[i] = bytes[i];
 		}
@@ -88,7 +89,7 @@ namespace BlueRain
 
 			var ret = new T[count];
 			for (int i = 0; i < count; i++)
-				ret[i] = Read<T>(address + (MarshalCache<T>.Size * i), isRelative);
+				ret[i] = Read<T>(address + (MarshalCache<T>.Size*i), isRelative);
 
 			return ret;
 		}
@@ -118,7 +119,7 @@ namespace BlueRain
 				// If the (value) type doesn't require marshalling, we can simply use MoveMemory to move the entire
 				// thing in one swoop. This is significantly faster than having it go through the Marshal.
 				var ptr = MarshalCache<T>.GetUnsafePtr(ref val);
-				MoveMemory(ptr, (void*)address, MarshalCache<T>.Size);
+				MoveMemory(ptr, (void*) address, MarshalCache<T>.Size);
 
 				return val;
 			}

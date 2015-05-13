@@ -14,7 +14,8 @@ namespace BlueRain
 		private const string Kernel32 = "kernel32";
 
 		[DllImport(Kernel32, ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
-		internal static extern unsafe SafeLoadLibrary LoadLibraryExW([In] string lpwLibFileName, [In] void* hFile, [In] uint dwFlags);
+		internal static extern unsafe SafeLoadLibrary LoadLibraryExW([In] string lpwLibFileName, [In] void* hFile,
+			[In] uint dwFlags);
 
 		[DllImport(Kernel32, ExactSpelling = true, SetLastError = true)]
 		[ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]

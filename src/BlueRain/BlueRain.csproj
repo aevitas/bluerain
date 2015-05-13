@@ -92,6 +92,7 @@
     <Compile Include="Common\Requires.cs" />
     <Compile Include="ExternalProcessMemory.cs" />
     <Compile Include="InjectedModule.cs" />
+    <Compile Include="Injector.cs" />
     <Compile Include="LocalProcessMemory.cs" />
     <Compile Include="Native.cs" />
     <Compile Include="NativeMemory.cs" />

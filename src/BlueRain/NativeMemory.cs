@@ -23,13 +23,25 @@ namespace BlueRain
 		private IntPtr _baseAddress;
 		private int _fastBaseAddress;
 
+		/// <summary>
+		/// Gets the module injector/loader for this memory instance.
+		/// </summary>
+		public Injector Injector { get; private set; }
+
+		/// <summary>
+		/// Gets a value indicating whether this instance is disposed.
+		/// </summary>
+		/// <value>
+		/// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
+		/// </value>
 		public bool IsDisposed { get; private set; }
 
 		/// <summary>
-		///     Initializes a new instance of the <see cref="NativeMemory" /> class.
+		/// Initializes a new instance of the <see cref="NativeMemory" /> class.
 		/// </summary>
 		/// <param name="process">The process.</param>
-		protected NativeMemory(Process process)
+		/// <param name="createInjector">if set to <c>true</c> creates an injector for module loading support.</param>
+		protected NativeMemory(Process process, bool createInjector = false)
 		{
 			Requires.NotNull(process, "process");
 

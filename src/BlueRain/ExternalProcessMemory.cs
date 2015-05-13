@@ -43,9 +43,9 @@ namespace BlueRain
 		/// <param name="process">The process.</param>
 		/// <exception cref="PlatformNotSupportedException">The platform is Windows 98 or Windows Millennium Edition (Windows Me); set the <see cref="P:System.Diagnostics.ProcessStartInfo.UseShellExecute" /> property to false to access this property on Windows 98 and Windows Me.</exception>
 		/// <exception cref="InvalidOperationException">The process's <see cref="P:System.Diagnostics.Process.Id" /> property has not been set.-or- There is no process associated with this <see cref="T:System.Diagnostics.Process" /> object. </exception>
-		public ExternalProcessMemory(Process process) : this (process,
-				ProcessAccess.CreateThread | ProcessAccess.QueryInformation | ProcessAccess.VMRead |
-				ProcessAccess.VMWrite | ProcessAccess.VMOperation | ProcessAccess.SetInformation)
+		public ExternalProcessMemory(Process process) : this(process,
+			ProcessAccess.CreateThread | ProcessAccess.QueryInformation | ProcessAccess.VMRead |
+			ProcessAccess.VMWrite | ProcessAccess.VMOperation | ProcessAccess.SetInformation)
 		{
 		}
 
@@ -83,7 +83,7 @@ namespace BlueRain
 			ProcessAccess dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
 
 		[DllImport("kernel32.dll", SetLastError = true)]
-		private static unsafe extern bool ReadProcessMemory(
+		private static extern unsafe bool ReadProcessMemory(
 			SafeMemoryHandle hProcess, IntPtr lpBaseAddress, byte* lpBuffer, int dwSize, out int lpNumberOfBytesRead);
 
 		[DllImport("kernel32.dll", SetLastError = true)]
@@ -95,8 +95,8 @@ namespace BlueRain
 			SafeMemoryHandle hProcess, IntPtr lpAddress, IntPtr dwSize, uint flNewProtect, out uint lpflOldProtect);
 
 		[DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
-		static extern IntPtr VirtualAllocEx(SafeMemoryHandle hProcess, IntPtr lpAddress,
-		   UIntPtr dwSize, AllocationType flAllocationType, MemoryProtection flProtect);
+		private static extern IntPtr VirtualAllocEx(SafeMemoryHandle hProcess, IntPtr lpAddress,
+			UIntPtr dwSize, AllocationType flAllocationType, MemoryProtection flProtect);
 
 		#endregion
 
@@ -232,7 +232,7 @@ namespace BlueRain
 			var buffer = new byte[size];
 
 			fixed (byte* b = buffer)
-				Marshal.StructureToPtr(value, (IntPtr)b, true);
+				Marshal.StructureToPtr(value, (IntPtr) b, true);
 
 			WriteBytes(address, buffer, isRelative);
 		}

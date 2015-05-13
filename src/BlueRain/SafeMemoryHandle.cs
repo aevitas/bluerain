@@ -44,7 +44,6 @@ namespace BlueRain
 			return CloseHandle(handle);
 		}
 
-
 		#endregion
 	}
 }

@@ -23,7 +23,7 @@ namespace BlueRain
 		/// </summary>
 		/// <param name="library">The library.</param>
 		/// <returns></returns>
-		public unsafe static SafeLoadLibrary LoadLibraryEx(string library)
+		public static unsafe SafeLoadLibrary LoadLibraryEx(string library)
 		{
 			SafeLoadLibrary result = UnsafeNativeMethods.LoadLibraryExW(library, null, 0);
 			if (result.IsInvalid)

@@ -18,7 +18,8 @@ namespace BlueRain.Common
 		/// <param name="value">The value.</param>
 		/// <param name="parameterName">Name of the parameter.</param>
 		/// <exception cref="ArgumentNullException"></exception>
-		public static void NotNull<T>(T value, string parameterName) where T : class // We don't want to compare value types with null if we can avoid it.
+		public static void NotNull<T>(T value, string parameterName) where T : class
+			// We don't want to compare value types with null if we can avoid it.
 		{
 			if (value == null)
 				throw new ArgumentNullException(parameterName);
@@ -34,7 +35,7 @@ namespace BlueRain.Common
 		/// <exception cref="ArgumentException"></exception>
 		public static void NotEqual<T>(T value, T compareToValue, string parameterName)
 		{
-			if (EqualityComparer<T>.Default.Equals(value, compareToValue)) 
+			if (EqualityComparer<T>.Default.Equals(value, compareToValue))
 				throw new ArgumentException(parameterName);
 		}
 

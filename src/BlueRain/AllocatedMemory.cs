@@ -102,7 +102,7 @@ namespace BlueRain
 		/// <exception cref="NotImplementedException"></exception>
 		public void Dispose()
 		{
-			VirtualFreeEx(Memory.ProcessHandle, Address, (UIntPtr)Size, FreeType.Release);
+			VirtualFreeEx(Memory.ProcessHandle, Address, (UIntPtr) Size, FreeType.Release);
 			IsAllocated = false;
 		}
 
@@ -111,8 +111,8 @@ namespace BlueRain
 		#region P/Invokes
 
 		[DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
-		static extern bool VirtualFreeEx(SafeMemoryHandle hProcess, IntPtr lpAddress,
-		   UIntPtr dwSize, FreeType dwFreeType);
+		private static extern bool VirtualFreeEx(SafeMemoryHandle hProcess, IntPtr lpAddress,
+			UIntPtr dwSize, FreeType dwFreeType);
 
 		#endregion
 	}
