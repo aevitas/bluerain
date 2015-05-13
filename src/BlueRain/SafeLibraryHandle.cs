@@ -14,7 +14,8 @@ namespace BlueRain
 		/// Initializes a new instance of the <see cref="SafeLoadLibrary"/> class.
 		/// </summary>
 		/// <param name="ownsHandle">true to reliably release the handle during the finalization phase; false to prevent reliable release (not recommended).</param>
-		public SafeLoadLibrary(bool ownsHandle) : base(ownsHandle)
+		public SafeLoadLibrary(bool ownsHandle)
+			: base(ownsHandle)
 		{
 		}
 
@@ -22,10 +23,11 @@ namespace BlueRain
 		/// Loads specified library by calling LoadLibraryExW.
 		/// </summary>
 		/// <param name="library">The library.</param>
+		/// <param name="loadLibraryOptions">The load library options.</param>
 		/// <returns></returns>
-		public static unsafe SafeLoadLibrary LoadLibraryEx(string library)
+		public static unsafe SafeLoadLibrary LoadLibraryEx(string library, uint loadLibraryOptions = 0)
 		{
-			SafeLoadLibrary result = UnsafeNativeMethods.LoadLibraryExW(library, null, 0);
+			SafeLoadLibrary result = UnsafeNativeMethods.LoadLibraryExW(library, null, loadLibraryOptions);
 			if (result.IsInvalid)
 			{
 				result.SetHandleAsInvalid();

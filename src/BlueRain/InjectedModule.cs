@@ -50,11 +50,12 @@ namespace BlueRain
 		/// </exception>
 		public IntPtr GetExportPointer(string exportName)
 		{
+			// Fairly certain this method was first implemented by Cypher aka RaptorFactor, so kudos to him.
 			IntPtr exportPtr;
 
 			// Call LoadLibraryExW without resolving DLL references - if at all possible we don't want to run any remote code 
 			// on "our" thread - all we need to do is resolve an export.
-			using (var lib = SafeLoadLibrary.LoadLibraryEx(Module.FileName))
+			using (var lib = SafeLoadLibrary.LoadLibraryEx(Module.FileName, (uint) LoadLibraryExOptions.DontResolveDllReferences))
 			{
 				if (lib == null)
 					throw new BlueRainInjectionException("Couldn't LoadLibrary into local thread to obtain export pointer!");
