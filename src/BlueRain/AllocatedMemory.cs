@@ -60,6 +60,17 @@ namespace BlueRain
 		}
 
 		/// <summary>
+		/// Reads the specified amount of bytes from the allocated chunk, starting at the specified offset.
+		/// </summary>
+		/// <param name="offset">The offset.</param>
+		/// <param name="count">The count.</param>
+		/// <returns></returns>
+		public byte[] ReadBytes(IntPtr offset, int count)
+		{
+			return Memory.ReadBytes(Address + offset.ToInt32(), count);
+		}
+
+		/// <summary>
 		/// Writes the specified value at the specified offset, relative to the address of the allocated chunk.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
@@ -90,6 +101,16 @@ namespace BlueRain
 		public void WriteString(IntPtr offset, string value, Encoding encoding)
 		{
 			Memory.WriteString(Address + offset.ToInt32(), value, encoding);
+		}
+
+		/// <summary>
+		/// Writes the specified bytes to the allocated chunk, starting at the specified offset.
+		/// </summary>
+		/// <param name="offset">The offset.</param>
+		/// <param name="value">The value.</param>
+		public void WriteBytes(IntPtr offset, byte[] value)
+		{
+			Memory.WriteBytes(Address + offset.ToInt32(), value);
 		}
 
 		#endregion

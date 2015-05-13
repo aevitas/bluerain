@@ -11,7 +11,7 @@ namespace BlueRain
 {
 	internal static class UnsafeNativeMethods
 	{
-		private const string Kernel32 = "kernel32";
+		internal const string Kernel32 = "kernel32";
 
 		[DllImport(Kernel32, ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
 		internal static extern unsafe SafeLoadLibrary LoadLibraryExW([In] string lpwLibFileName, [In] void* hFile,
@@ -24,6 +24,17 @@ namespace BlueRain
 		[DllImport(Kernel32, CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
 		[ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
 		internal static extern IntPtr GetProcAddress([In] IntPtr hModule, [In] string procName);
+
+		[DllImport(Kernel32, CharSet = CharSet.Auto)]
+		public static extern SafeMemoryHandle GetModuleHandle(string lpModuleName);
+
+		[DllImport(Kernel32, ExactSpelling = true, SetLastError = true)]
+		public static extern SafeMemoryHandle CreateRemoteThread(IntPtr hProcess,
+		   IntPtr lpThreadAttributes, uint dwStackSize, IntPtr
+		   lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
+
+		[DllImport(Kernel32, SetLastError = true)]
+		public static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
 	}
 
 	[Flags]
