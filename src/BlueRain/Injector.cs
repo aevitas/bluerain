@@ -70,6 +70,7 @@ namespace BlueRain
 			if (epm != null)
 				return InjectLibraryExternal(libraryPath);
 
+			// Otherwise, just call LoadLibraryW and be done with it.
 			return InjectLibraryInternal(libraryPath);
 		}
 
@@ -77,7 +78,7 @@ namespace BlueRain
 		{
 			// Injecting remotely consists of a few steps:
 			// 1. GetProcAddress on kernel32 to get a pointer to LoadLibraryW
-			// 2. Allocate memory to write the full path to our library to
+			// 2. Allocate chunk of memory to write the path to our library to
 			// 3. CreateRemoteThread that calls LoadLibraryW and pass it a pointer to our chunk
 			// 4. Get thread's exit code
 			// 5. ????
@@ -86,13 +87,15 @@ namespace BlueRain
 
 			// Realistically won't happen, but code analysis complains about it being null.
 			if (memory == null)
-				throw new Exception("A valid memory instance is required for InjectLibraryExternal!");
+				throw new InvalidOperationException("A valid memory instance is required for InjectLibraryExternal!");
 
 			if (memory.ProcessHandle.IsInvalid)
 				throw new InvalidOperationException("Can not inject library with an invalid ProcessHandle in ExternalProcessMemory!");
 
 			var path = Path.GetFullPath(libraryPath);
-			var libraryName = Path.GetFileName(libraryPath);
+			var libraryFileName = Path.GetFileName(libraryPath);
+
+			ProcessModule ourModule;
 
 			SafeMemoryHandle threadHandle = null;
 
@@ -118,12 +121,31 @@ namespace BlueRain
 						throw new BlueRainInjectionException("Couldn't obtain a handle to the remotely created thread for module injection!");
 				}
 
+				// ThreadWaitValue.Infinite = 0xFFFFFFFF = uint.MaxValue - Object0 = 0x0
+				if (UnsafeNativeMethods.WaitForSingleObject(threadHandle.DangerousGetHandle(), uint.MaxValue) != 0x0)
+					throw new BlueRainInjectionException(
+						"WaitForSingleObject returned an unexpected value while waiting for the remote thread to be created.");
 
+				uint exitCode;
+				if (!UnsafeNativeMethods.GetExitCodeThread(threadHandle.DangerousGetHandle(), out exitCode))
+					throw new BlueRainInjectionException("Couldn't obtain exit code for LoadLibraryW thread in remote process!");
+
+				// Let's make sure our module is actually present in the remote process now (assuming it's doing nothing special to hide itself..)
+				var moduleHandle = UnsafeNativeMethods.GetModuleHandle(libraryFileName);
+				if (moduleHandle.IsInvalid)
+					throw new BlueRainInjectionException("Couldn't obtain module handle to remotely injected library after LoadLibraryW!");
+
+				ourModule = memory.Process.Modules.Cast<ProcessModule>()
+					.FirstOrDefault(m => m.BaseAddress == moduleHandle.DangerousGetHandle());
 			}
 			finally
 			{
-				threadHandle.Close();
+				if (threadHandle != null) 
+					threadHandle.Close();
 			}
+
+			// We can safely do this - if something went wrong we wouldn't be here.
+			return new InjectedModule(ourModule);
 		}
 
 		private static InjectedModule InjectLibraryInternal(string libraryPath)
@@ -133,12 +155,12 @@ namespace BlueRain
 			var lib = SafeLoadLibrary.LoadLibraryEx(libraryPath);
 
 			if (lib == null)
-				throw new Exception("LoadLibrary failed in local process!");
+				throw new BlueRainInjectionException("LoadLibrary failed in local process!");
 
 			var module = Process.GetCurrentProcess().Modules.Cast<ProcessModule>().FirstOrDefault(s => s.FileName == libraryPath);
 
 			if (module == null)
-				throw new Exception("The injected library couldn't be found in the Process' module list!");
+				throw new BlueRainInjectionException("The injected library couldn't be found in the Process' module list!");
 
 			return new InjectedModule(module);
 		}

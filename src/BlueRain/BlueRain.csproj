@@ -94,11 +94,12 @@
     <Compile Include="InjectedModule.cs" />
     <Compile Include="Injector.cs" />
     <Compile Include="LocalProcessMemory.cs" />
-    <Compile Include="Native.cs" />
+    <Compile Include="Enums.cs" />
     <Compile Include="NativeMemory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SafeLibraryHandle.cs" />
     <Compile Include="SafeMemoryHandle.cs" />
+    <Compile Include="UnsafeNativeMethods.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\packages.config" />
