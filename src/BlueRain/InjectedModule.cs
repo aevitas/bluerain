@@ -12,6 +12,8 @@ namespace BlueRain
 	/// </summary>
 	public class InjectedModule
 	{
+		private bool _isDisposed;
+
 		/// <summary>
 		/// Gets the module handle that represents this module.
 		/// </summary>
@@ -69,6 +71,51 @@ namespace BlueRain
 			}
 
 			return exportPtr;
+		}
+
+		/// <summary>
+		/// Frees this library through calling FreeLibrary.
+		/// </summary>
+		/// <param name="isLocalProcessMemory">if set to <c>true</c> [is local process memory].</param>
+		/// <returns>
+		/// The exit code of FreeLibrary
+		/// </returns>
+		/// <exception cref="BlueRainException">Couldn't find FreeMemory in Kernel32!</exception>
+		/// <exception cref="BlueRainInjectionException">WaitForSingleObject returned an unexpected value while waiting for the remote thread to be created for module eject.</exception>
+		public bool Free(bool isLocalProcessMemory)
+		{
+			// Easy game easy life.
+			if (isLocalProcessMemory)
+				return UnsafeNativeMethods.FreeLibrary(BaseAddress);
+
+			var kernel32Handle = UnsafeNativeMethods.GetModuleHandle(UnsafeNativeMethods.Kernel32);
+			var freeLibrary = UnsafeNativeMethods.GetProcAddress(kernel32Handle.DangerousGetHandle(), "FreeLibrary");
+			if (freeLibrary == IntPtr.Zero)
+				throw new BlueRainException("Couldn't find FreeMemory in Kernel32!");
+
+			SafeMemoryHandle threadHandle = null;
+			uint exitCode;
+
+			try
+			{
+				threadHandle = UnsafeNativeMethods.CreateRemoteThread(kernel32Handle.DangerousGetHandle(), IntPtr.Zero, 0,
+					freeLibrary, BaseAddress, 0, IntPtr.Zero);
+
+				if (UnsafeNativeMethods.WaitForSingleObject(threadHandle.DangerousGetHandle(), uint.MaxValue) != 0x0)
+					throw new BlueRainInjectionException("WaitForSingleObject returned an unexpected value while waiting for the remote thread to be created for module eject.");
+
+				UnsafeNativeMethods.GetExitCodeThread(threadHandle.DangerousGetHandle(), out exitCode);
+			}
+			finally
+			{
+				if (kernel32Handle != null && !kernel32Handle.IsClosed)
+					kernel32Handle.Close();
+
+				if (threadHandle != null && !threadHandle.IsClosed)
+					threadHandle.Close();
+			}
+
+			return exitCode != 0;
 		}
 	}
 }

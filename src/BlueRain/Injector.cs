@@ -20,12 +20,16 @@ namespace BlueRain
 	public class Injector : IDisposable
 	{
 		private readonly NativeMemory _memory;
-		private bool _ejectOnDispose;
+		private readonly bool _ejectOnDispose;
+		private bool _disposed;
 
 		private readonly Dictionary<string, InjectedModule> _injectedModules;
 
+		private bool IsExternal { get { return _memory is ExternalProcessMemory; } }
+
 		/// <summary>
 		/// Gets the modules this injector has successfully injected.
+		/// The key represents the full path to the module, the value the InjectedModule type.
 		/// </summary>
 		/// <value>
 		/// The injected modules.
@@ -57,6 +61,13 @@ namespace BlueRain
 			_injectedModules = new Dictionary<string, InjectedModule>();
 		}
 
+		/// <summary>
+		/// Injects the specified library path into the process the memory instance is currently attached to.
+		/// </summary>
+		/// <param name="libraryPath">The library path.</param>
+		/// <returns></returns>
+		/// <exception cref="System.IO.FileNotFoundException">Couldn't find the specified library to inject:  + libraryPath</exception>
+		/// <exception cref="System.InvalidOperationException">Can not inject a library without a valid Memory instance!</exception>
 		public InjectedModule Inject(string libraryPath)
 		{
 			if (!File.Exists(libraryPath))
@@ -98,12 +109,14 @@ namespace BlueRain
 			ProcessModule ourModule;
 
 			SafeMemoryHandle threadHandle = null;
+			SafeMemoryHandle kernel32Handle = null;
 
 			try
 			{
+				kernel32Handle = UnsafeNativeMethods.GetModuleHandle(UnsafeNativeMethods.Kernel32);
+
 				var loadLibraryPtr =
-					UnsafeNativeMethods.GetProcAddress(
-						UnsafeNativeMethods.GetModuleHandle(UnsafeNativeMethods.Kernel32).DangerousGetHandle(), "LoadLibraryW");
+					UnsafeNativeMethods.GetProcAddress(kernel32Handle.DangerousGetHandle(), "LoadLibraryW");
 
 				if (loadLibraryPtr == IntPtr.Zero)
 					throw new BlueRainInjectionException("Couldn't obtain handle to LoadLibraryW in remote process!");
@@ -124,7 +137,7 @@ namespace BlueRain
 				// ThreadWaitValue.Infinite = 0xFFFFFFFF = uint.MaxValue - Object0 = 0x0
 				if (UnsafeNativeMethods.WaitForSingleObject(threadHandle.DangerousGetHandle(), uint.MaxValue) != 0x0)
 					throw new BlueRainInjectionException(
-						"WaitForSingleObject returned an unexpected value while waiting for the remote thread to be created.");
+						"WaitForSingleObject returned an unexpected value while waiting for the remote thread to be created for module injection.");
 
 				uint exitCode;
 				if (!UnsafeNativeMethods.GetExitCodeThread(threadHandle.DangerousGetHandle(), out exitCode))
@@ -140,17 +153,22 @@ namespace BlueRain
 			}
 			finally
 			{
-				if (threadHandle != null) 
+				if (threadHandle != null && !threadHandle.IsClosed) 
 					threadHandle.Close();
+
+				if (kernel32Handle != null && !kernel32Handle.IsClosed)
+					kernel32Handle.Close();
 			}
 
 			// We can safely do this - if something went wrong we wouldn't be here.
-			return new InjectedModule(ourModule);
+			var module = new InjectedModule(ourModule);
+			_injectedModules.Add(path, module);
+			return module;
 		}
 
 		private static InjectedModule InjectLibraryInternal(string libraryPath)
 		{
-			// It's hardly "injecting" when we're in-process, but for the sake of keeping the API streamlined we'll go with it.
+			// It's hardly "injecting" when we're in-process, but for the sake of keeping the API uniform we'll go with it.
 			// All we have to do is call LoadLibrary on the local process and wrap it in an InjectedModule type.
 			var lib = SafeLoadLibrary.LoadLibraryEx(libraryPath);
 
@@ -165,14 +183,50 @@ namespace BlueRain
 			return new InjectedModule(module);
 		}
 
+		/// <summary>
+		/// Ejects the specified path.
+		/// </summary>
+		/// <param name="path">The path.</param>
+		/// <returns></returns>
+		/// <exception cref="BlueRainException">Couldn't eject the specified library - it wasn't injected by this injector:  + path</exception>
+		/// <exception cref="BlueRainInjectionException">WaitForSingleObject returned an unexpected value while waiting for the remote thread to be created for module eject.</exception>
+		public bool Eject(string path)
+		{
+			if (!InjectedModules.ContainsKey(path))
+				throw new BlueRainException("Couldn't eject the specified library - it wasn't injected by this injector: " + path);
+
+			var lib = InjectedModules.FirstOrDefault(s => s.Key == path);
+
+			return lib.Value.Free(IsExternal);
+		}
+
 		#region Implementation of IDisposable
 
 		/// <summary>
 		/// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
 		/// </summary>
-		/// <exception cref="NotImplementedException"></exception>
 		public void Dispose()
 		{
+			if (_disposed)
+				return;
+
+			if (!_ejectOnDispose)
+				return;
+
+			try
+			{
+				// Use this once we figure out how to properly notify success/failure.
+				bool success;
+				foreach (var m in InjectedModules)
+					if (!m.Value.Free(IsExternal))
+						success = false;
+			}
+			catch (BlueRainException)
+			{
+				// We don't want Dispose to throw when ejecting a module goes wrong.
+			}
+
+			_disposed = true;
 		}
 
 		#endregion
