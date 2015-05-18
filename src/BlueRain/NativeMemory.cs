@@ -53,6 +53,9 @@ namespace BlueRain
 				// Just pass the exit code and the EventArgs to the handler.
 				await OnExited(Process.ExitCode, args);
 			};
+
+			if (createInjector)
+				Injector = new Injector(this);
 		}
 
 		/// <summary>

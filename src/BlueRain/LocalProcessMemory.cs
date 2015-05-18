@@ -14,11 +14,12 @@ namespace BlueRain
 	public sealed unsafe class LocalProcessMemory : NativeMemory
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LocalProcessMemory"/> class.
+		/// Initializes a new instance of the <see cref="LocalProcessMemory" /> class.
 		/// </summary>
 		/// <param name="process">The process.</param>
-		public LocalProcessMemory(Process process)
-			: base(process)
+		/// <param name="createInjector">if set to <c>true</c> creates an injector for module loading support.</param>
+		public LocalProcessMemory(Process process, bool createInjector)
+			: base(process, createInjector)
 		{
 		}
 

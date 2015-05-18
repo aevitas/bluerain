@@ -18,34 +18,36 @@ namespace BlueRain
 		private SafeMemoryHandle _mainThreadHandle;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ExternalProcessMemory"/> class.
+		/// Initializes a new instance of the <see cref="ExternalProcessMemory" /> class.
 		/// </summary>
 		/// <param name="process">The process.</param>
 		/// <param name="access">The access flags.</param>
+		/// <param name="createInjector">if set to <c>true</c> creates an injector for module loading support.</param>
 		/// <exception cref="PlatformNotSupportedException">The platform is Windows 98 or Windows Millennium Edition (Windows Me); set the <see cref="P:System.Diagnostics.ProcessStartInfo.UseShellExecute" /> property to false to access this property on Windows 98 and Windows Me.</exception>
-		/// <exception cref="InvalidOperationException">The process's <see cref="P:System.Diagnostics.Process.Id" /> property has not been set.-or- There is no process associated with this <see cref="T:System.Diagnostics.Process" /> object. </exception>
+		/// <exception cref="InvalidOperationException">The process's <see cref="P:System.Diagnostics.Process.Id" /> property has not been set.-or- There is no process associated with this <see cref="T:System.Diagnostics.Process" /> object.</exception>
 		public ExternalProcessMemory(Process process,
-			ProcessAccess access) : base(process)
+			ProcessAccess access, bool createInjector = false) : base(process, createInjector)
 		{
 			ProcessHandle = OpenProcess(access, false, process.Id);
 
 			// Obtain a handle to the process' main thread so we can suspend/resume it whenever we need to.0
 			_mainThreadHandle = OpenThread(ThreadAccess.ALL, false, (uint) process.Threads[0].Id);
 
-			// TODO: Obtain SeDebugPrivilege here so we can CreateRemoteThread for lib injection!
+			Process.EnterDebugMode();
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ExternalProcessMemory"/> class.
+		/// Initializes a new instance of the <see cref="ExternalProcessMemory" /> class.
 		/// This constructor opens a handle to the specified process using the following flags:
 		/// ProcessAccess.CreateThread | ProcessAccess.QueryInformation | ProcessAccess.VMRead | ProcessAccess.VMWrite | ProcessAccess.VMOperation | ProcessAccess.SetInformation
 		/// </summary>
 		/// <param name="process">The process.</param>
+		/// <param name="createInjector">if set to <c>true</c> creates an injector for module loading support.</param>
 		/// <exception cref="PlatformNotSupportedException">The platform is Windows 98 or Windows Millennium Edition (Windows Me); set the <see cref="P:System.Diagnostics.ProcessStartInfo.UseShellExecute" /> property to false to access this property on Windows 98 and Windows Me.</exception>
-		/// <exception cref="InvalidOperationException">The process's <see cref="P:System.Diagnostics.Process.Id" /> property has not been set.-or- There is no process associated with this <see cref="T:System.Diagnostics.Process" /> object. </exception>
-		public ExternalProcessMemory(Process process) : this(process,
+		/// <exception cref="InvalidOperationException">The process's <see cref="P:System.Diagnostics.Process.Id" /> property has not been set.-or- There is no process associated with this <see cref="T:System.Diagnostics.Process" /> object.</exception>
+		public ExternalProcessMemory(Process process, bool createInjector = false) : this(process,
 			ProcessAccess.CreateThread | ProcessAccess.QueryInformation | ProcessAccess.VMRead |
-			ProcessAccess.VMWrite | ProcessAccess.VMOperation | ProcessAccess.SetInformation)
+			ProcessAccess.VMWrite | ProcessAccess.VMOperation | ProcessAccess.SetInformation, createInjector)
 		{
 		}
 
@@ -254,6 +256,8 @@ namespace BlueRain
 
 			if (_mainThreadHandle != null)
 				_mainThreadHandle.Dispose();
+
+			Process.LeaveDebugMode();
 
 			base.Dispose();
 		}
