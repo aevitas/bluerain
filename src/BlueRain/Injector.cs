@@ -161,12 +161,12 @@ namespace BlueRain
 			}
 
 			// We can safely do this - if something went wrong we wouldn't be here.
-			var module = new InjectedModule(ourModule);
+			var module = new InjectedModule(ourModule, _memory);
 			_injectedModules.Add(path, module);
 			return module;
 		}
 
-		private static InjectedModule InjectLibraryInternal(string libraryPath)
+		private InjectedModule InjectLibraryInternal(string libraryPath)
 		{
 			// It's hardly "injecting" when we're in-process, but for the sake of keeping the API uniform we'll go with it.
 			// All we have to do is call LoadLibrary on the local process and wrap it in an InjectedModule type.
@@ -180,7 +180,7 @@ namespace BlueRain
 			if (module == null)
 				throw new BlueRainInjectionException("The injected library couldn't be found in the Process' module list!");
 
-			return new InjectedModule(module);
+			return new InjectedModule(module, _memory);
 		}
 
 		/// <summary>

@@ -18,9 +18,15 @@ namespace BlueRain
 		/// </summary>
 		/// <param name="process">The process.</param>
 		/// <param name="createInjector">if set to <c>true</c> creates an injector for module loading support.</param>
-		public LocalProcessMemory(Process process, bool createInjector)
+		public LocalProcessMemory(Process process, bool createInjector = false)
 			: base(process, createInjector)
 		{
+		}
+
+		public override AllocatedMemory Allocate(UIntPtr size)
+		{
+			IntPtr alloc = Marshal.AllocHGlobal((int) size);
+			return new AllocatedMemory(alloc, (uint)size, this);
 		}
 
 		/// <summary>

@@ -15,7 +15,7 @@ namespace BlueRain
 	public sealed class ExternalProcessMemory : NativeMemory
 	{
 		internal readonly SafeMemoryHandle ProcessHandle;
-		private SafeMemoryHandle _mainThreadHandle;
+		private readonly SafeMemoryHandle _mainThreadHandle;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ExternalProcessMemory" /> class.
@@ -63,7 +63,7 @@ namespace BlueRain
 		/// <param name="size">The size.</param>
 		/// <returns></returns>
 		/// <exception cref="BlueRainException"></exception>
-		public AllocatedMemory Allocate(UIntPtr size)
+		public override AllocatedMemory Allocate(UIntPtr size)
 		{
 			var chunk = AllocateMemory(size);
 

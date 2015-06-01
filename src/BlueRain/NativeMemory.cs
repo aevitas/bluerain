@@ -72,6 +72,14 @@ namespace BlueRain
 		}
 
 		/// <summary>
+		/// Allocates a chunk of memory of the specified size in the remote process.
+		/// </summary>
+		/// <param name="size">The size.</param>
+		/// <returns></returns>
+		/// <exception cref="BlueRainException"></exception>
+		public abstract AllocatedMemory Allocate(UIntPtr size);
+
+		/// <summary>
 		///     Gets or sets the process this NativeMemory instance is wrapped around.
 		/// </summary>
 		public Process Process { [Pure] get; protected set; }

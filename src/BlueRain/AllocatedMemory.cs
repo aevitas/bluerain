@@ -20,7 +20,7 @@ namespace BlueRain
 		/// <summary>
 		/// Gets the memory instance that allocated this chunk of memory.
 		/// </summary>
-		public ExternalProcessMemory Memory { get; private set; }
+		public NativeMemory Memory { get; private set; }
 
 		/// <summary>
 		/// Gets the address returned by VirtualAllocEx when this chunk of memory was allocated.
@@ -38,7 +38,7 @@ namespace BlueRain
 		/// <param name="address">The address.</param>
 		/// <param name="size">The size.</param>
 		/// <param name="memory">The memory.</param>
-		public AllocatedMemory(IntPtr address, uint size, ExternalProcessMemory memory)
+		public AllocatedMemory(IntPtr address, uint size, NativeMemory memory)
 		{
 			Address = address;
 			Size = size;
@@ -120,10 +120,17 @@ namespace BlueRain
 		/// <summary>
 		/// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
 		/// </summary>
-		/// <exception cref="NotImplementedException"></exception>
 		public void Dispose()
 		{
-			VirtualFreeEx(Memory.ProcessHandle, Address, (UIntPtr) Size, FreeType.Release);
+			var epm = Memory as ExternalProcessMemory;
+
+			if (epm != null)
+				VirtualFreeEx(epm.ProcessHandle, Address, (UIntPtr)Size, FreeType.Release);
+
+			var lpm = Memory as LocalProcessMemory;
+			if (lpm != null)
+				Marshal.FreeHGlobal(Address);
+
 			IsAllocated = false;
 		}
 

@@ -10,7 +10,7 @@ namespace BlueRain.Tests
 	[TestClass]
 	public unsafe class LocalMemoryTests
 	{
-		public static LocalProcessMemory Memory = new LocalProcessMemory(Process.GetCurrentProcess());
+		public static LocalProcessMemory Memory = new LocalProcessMemory(Process.GetCurrentProcess(), false);
 
 		[TestMethod]
 		public void WriteAndReadBytes()
