@@ -86,27 +86,23 @@ namespace BlueRain
 		}
 
 		/// <summary>
-		///     Calls the specified export with the specified args.
+		/// Calls the specified export with the specified args.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="exportName">Name of the export.</param>
-		/// <param name="args">The arguments.</param>
+		/// <param name="parameter">The argument.</param>
+		/// <param name="callWithParameter">if set to <c>true</c>, the specified export will be called with the specified parameter.</param>
 		/// <returns></returns>
 		/// <exception cref="System.ArgumentNullException">exportName</exception>
-		/// <exception cref="BlueRainException">
-		///     Couldn't resolve export named with name  + exportName +  in remotely injected
-		///     library.
-		/// </exception>
-		/// <exception cref="BlueRainInjectionException">
-		///     WaitForSingleObject returned an unexpected value while waiting for the
-		///     remote thread to be created for export call.
-		/// </exception>
-		public IntPtr Call<T>(string exportName, params T[] args) where T : struct
+		/// <exception cref="BlueRainException">Couldn't resolve export named with name  + exportName +  in remotely injected
+		/// library.</exception>
+		/// <exception cref="BlueRainInjectionException">WaitForSingleObject returned an unexpected value while waiting for the
+		/// remote thread to be created for export call.</exception>
+		public IntPtr Call<T>(string exportName, T parameter, bool callWithParameter = false) where T : struct
 		{
-			// The idea behind this method's quite simple. We first obtain a pointer to the specified export by resolving it,
-			// then - if we have args to push to the func - we allocate a chunk of memory and write the arguments to it.
-			// Finally we call CreateRemoteThread and pass the address of the chunk to the lpParameter.
-			// This func *assumes* the callee's calling convention doesn't require its arguments to be on the stack.
+			// The idea behind this method's quite simple. We can only call an __stdcall export with one parameter,
+			// any subsequent arguments would require injecting a stub to push the args to the stack. 
+			// We don't support that as of yet - we'll resort to allocating and calling the export with a single parameter for now.
 
 			if (string.IsNullOrEmpty(exportName))
 				throw new ArgumentNullException("exportName");
@@ -124,18 +120,12 @@ namespace BlueRain
 			AllocatedMemory alloc = null;
 			try
 			{
-				// Only allocate a chunk for args if we have actual args to push to the func.
-				if (args.Length > 0)
+				if (callWithParameter)
 				{
-					var size = Marshal.SizeOf(args);
-					var bytesWritten = IntPtr.Zero;
+					var size = Marshal.SizeOf(parameter);
 					alloc = _memory.Allocate((UIntPtr) size);
 
-					foreach (var a in args)
-					{
-						alloc.Write(bytesWritten, a);
-						bytesWritten += Marshal.SizeOf(a);
-					}
+					alloc.Write(IntPtr.Zero, parameter);
 				}
 
 				threadHandle = UnsafeNativeMethods.CreateRemoteThread(kernel32Handle.DangerousGetHandle(), IntPtr.Zero, 0, exportPtr,
