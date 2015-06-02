@@ -40,17 +40,6 @@ namespace BlueRain
 			get { return Module.BaseAddress; }
 		}
 
-		#region Implementation of IDisposable
-
-		/// <summary>
-		///     Releases unmanaged and - optionally - managed resources.
-		/// </summary>
-		public void Dispose()
-		{
-		}
-
-		#endregion
-
 		/// <summary>
 		///     Obtains a pointer to the specified exported function.
 		/// </summary>
@@ -201,5 +190,20 @@ namespace BlueRain
 
 			return exitCode != 0;
 		}
+
+		#region Implementation of IDisposable
+
+		/// <summary>
+		///     Releases unmanaged and - optionally - managed resources.
+		/// </summary>
+		public void Dispose()
+		{
+			if (_isDisposed)
+				return;
+
+			Free(_memory is LocalProcessMemory);
+		}
+
+		#endregion
 	}
 }
