@@ -95,6 +95,21 @@ namespace BlueRain
 		}
 
 		/// <summary>
+		///		Gets the module with the specified name from the process.
+		/// </summary>
+		/// <param name="moduleName">Name of the module.</param>
+		/// <returns></returns>
+		public ProcessModule GetModule(string moduleName)
+		{
+			Requires.Condition(() => !string.IsNullOrEmpty(moduleName), "moduleName");
+			Requires.NotNull(Process, "process");
+
+			var modules = Process.Modules.Cast<ProcessModule>();
+
+			return modules.FirstOrDefault(s => s.ModuleName.Equals(moduleName, StringComparison.OrdinalIgnoreCase));
+		}
+
+		/// <summary>
 		///     Converts the specified absolute address to a relative address.
 		/// </summary>
 		/// <param name="absoluteAddress">The absolute address.</param>
