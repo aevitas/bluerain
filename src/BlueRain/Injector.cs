@@ -39,11 +39,6 @@ namespace BlueRain
 			get { return _injectedModules; }
 		}
 
-		// Make sure we hide the default constructor - this should only be initialized from a Memory instance.
-		private Injector()
-		{
-		}
-
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Injector" /> class.
 		/// </summary>

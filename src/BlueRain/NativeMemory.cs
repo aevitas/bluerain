@@ -328,6 +328,9 @@ namespace BlueRain
 			if (IsDisposed)
 				return;
 
+			if (Injector != null)
+				Injector.Dispose();
+
 			// Pretty much all we "have" to clean up.
 			Process.LeaveDebugMode();
 
