@@ -123,7 +123,7 @@ namespace BlueRain
 
 				var pathBytes = Encoding.Unicode.GetBytes(path);
 
-				using (var alloc = memory.Allocate((UIntPtr) pathBytes.Length))
+				using (var alloc = memory.Allocate((UIntPtr)pathBytes.Length))
 				{
 					alloc.WriteBytes(IntPtr.Zero, pathBytes);
 
@@ -153,7 +153,7 @@ namespace BlueRain
 			}
 			finally
 			{
-				if (threadHandle != null && !threadHandle.IsClosed) 
+				if (threadHandle != null && !threadHandle.IsClosed)
 					threadHandle.Close();
 
 				if (kernel32Handle != null && !kernel32Handle.IsClosed)
@@ -210,20 +210,20 @@ namespace BlueRain
 			if (_disposed)
 				return;
 
-			if (!_ejectOnDispose)
-				return;
-
-			try
+			if (_ejectOnDispose)
 			{
-				// Use this once we figure out how to properly notify success/failure.
-				bool success;
-				foreach (var m in InjectedModules)
-					if (!m.Value.Free(IsExternal))
-						success = false;
-			}
-			catch (BlueRainException)
-			{
-				// We don't want Dispose to throw when ejecting a module goes wrong.
+				try
+				{
+					// Use this once we figure out how to properly notify success/failure.
+					bool success;
+					foreach (var m in InjectedModules)
+						if (!m.Value.Free(IsExternal))
+							success = false;
+				}
+				catch (BlueRainException)
+				{
+					// We don't want Dispose to throw when ejecting a module goes wrong.
+				}
 			}
 
 			_disposed = true;
