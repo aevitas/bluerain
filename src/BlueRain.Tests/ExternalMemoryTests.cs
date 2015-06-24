@@ -61,6 +61,21 @@ namespace BlueRain.Tests
 		}
 
 		[TestMethod]
+		public void UnicodeStringReadWrite()
+		{
+			var text = "some test string";
+			var bytes = Encoding.Unicode.GetBytes(text.ToCharArray());
+			var s = Encoding.Unicode.GetString(bytes);
+
+			using (var alloc = Memory.Allocate((UIntPtr) bytes.Length))
+			{
+				alloc.WriteString((IntPtr) 0x0, s, Encoding.Unicode);
+
+				Assert.IsTrue(alloc.ReadString((IntPtr) 0x0, Encoding.Unicode) == s);
+			}
+		}
+
+		[TestMethod]
 		[ExpectedException(typeof(BlueRainReadException))]
 		public void RelativeRead()
 		{
