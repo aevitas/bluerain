@@ -181,7 +181,7 @@ namespace BlueRain
 			}
 			finally
 			{
-				if (kernel32Handle != null && !kernel32Handle.IsClosed)
+				if (!kernel32Handle.IsClosed)
 					kernel32Handle.Close();
 
 				if (threadHandle != null && !threadHandle.IsClosed)
@@ -202,6 +202,8 @@ namespace BlueRain
 				return;
 
 			Free(_memory is LocalProcessMemory);
+
+			_isDisposed = true;
 		}
 
 		#endregion
