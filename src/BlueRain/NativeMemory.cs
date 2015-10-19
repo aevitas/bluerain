@@ -26,7 +26,7 @@ namespace BlueRain
 		/// <summary>
 		/// Gets the module injector/loader for this memory instance.
 		/// </summary>
-		public Injector Injector { get; private set; }
+		public Injector Injector { get; }
 
 		/// <summary>
 		/// Gets a value indicating whether this instance is disposed.
@@ -353,8 +353,7 @@ namespace BlueRain
 			if (IsDisposed)
 				return;
 
-			if (Injector != null)
-				Injector.Dispose();
+			Injector?.Dispose();
 
 			// Pretty much all we "have" to clean up.
 			Process.LeaveDebugMode();

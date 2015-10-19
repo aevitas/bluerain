@@ -20,17 +20,17 @@ namespace BlueRain
 		/// <summary>
 		/// Gets the memory instance that allocated this chunk of memory.
 		/// </summary>
-		public NativeMemory Memory { get; private set; }
+		public NativeMemory Memory { get; }
 
 		/// <summary>
 		/// Gets the address returned by VirtualAllocEx when this chunk of memory was allocated.
 		/// </summary>
-		public IntPtr Address { get; private set; }
+		public IntPtr Address { get; }
 
 		/// <summary>
 		/// Gets the size of this allocated chunk.
 		/// </summary>
-		public uint Size { get; private set; }
+		public uint Size { get; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="AllocatedMemory"/> class.

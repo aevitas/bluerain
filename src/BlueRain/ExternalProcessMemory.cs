@@ -72,7 +72,7 @@ namespace BlueRain
 				return new AllocatedMemory(chunk, size.ToUInt32(), this);
 			}
 
-			throw new BlueRainException(string.Format("Couldn't allocate {0} sized chunk!", size.ToUInt32()));
+			throw new BlueRainException($"Couldn't allocate {size.ToUInt32()} sized chunk!");
 		}
 
 		#region P/Invokes
@@ -223,7 +223,7 @@ namespace BlueRain
 		/// <returns></returns>
 		/// <exception cref="OverflowException">The array is multidimensional and contains more than <see cref="F:System.Int32.MaxValue" /> elements.</exception>
 		/// <exception cref="BlueRainWriteException">WriteProcessMemory failed.</exception>
-		/// <exception cref="ArgumentException"><paramref name="structure" /> is a reference type that is not a formatted class. </exception>
+		/// <exception cref="ArgumentException"><paramref name="T" /> is a reference type that is not a formatted class. </exception>
 		public override unsafe void Write<T>(IntPtr address, T value, bool isRelative = false)
 		{
 			Requires.NotEqual(address, IntPtr.Zero, "address");
@@ -251,11 +251,8 @@ namespace BlueRain
 			if (IsDisposed)
 				return;
 
-			if (ProcessHandle != null)
-				ProcessHandle.Dispose();
-
-			if (_mainThreadHandle != null)
-				_mainThreadHandle.Dispose();
+			ProcessHandle?.Dispose();
+			_mainThreadHandle?.Dispose();
 
 			Process.LeaveDebugMode();
 

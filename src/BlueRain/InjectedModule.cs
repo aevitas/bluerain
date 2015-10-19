@@ -30,15 +30,12 @@ namespace BlueRain
 		/// <summary>
 		///     Gets the module handle that represents this module.
 		/// </summary>
-		public ProcessModule Module { get; private set; }
+		public ProcessModule Module { get; }
 
 		/// <summary>
 		///     Gets the base address of this module in the target process.
 		/// </summary>
-		public IntPtr BaseAddress
-		{
-			get { return Module.BaseAddress; }
-		}
+		public IntPtr BaseAddress => Module.BaseAddress;
 
 		/// <summary>
 		///     Obtains a pointer to the specified exported function.
@@ -94,7 +91,7 @@ namespace BlueRain
 			// We don't support that as of yet - we'll resort to allocating and calling the export with a single parameter for now.
 
 			if (string.IsNullOrEmpty(exportName))
-				throw new ArgumentNullException("exportName");
+				throw new ArgumentNullException(nameof(exportName));
 
 			var exportPtr = GetExportPointer(exportName);
 
@@ -118,7 +115,7 @@ namespace BlueRain
 				}
 
 				threadHandle = UnsafeNativeMethods.CreateRemoteThread(kernel32Handle.DangerousGetHandle(), IntPtr.Zero, 0, exportPtr,
-					alloc != null ? alloc.Address : IntPtr.Zero, 0x0, IntPtr.Zero);
+					alloc?.Address ?? IntPtr.Zero, 0x0, IntPtr.Zero);
 
 				if (UnsafeNativeMethods.WaitForSingleObject(threadHandle.DangerousGetHandle(), uint.MaxValue) != 0x0)
 					throw new BlueRainInjectionException(
@@ -135,8 +132,7 @@ namespace BlueRain
 					threadHandle.Close();
 
 				// Make sure we free the chunk for the args.
-				if (alloc != null)
-					alloc.Dispose();
+				alloc?.Dispose();
 			}
 
 			return (IntPtr) exitCode;

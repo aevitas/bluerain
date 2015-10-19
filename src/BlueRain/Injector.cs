@@ -25,7 +25,7 @@ namespace BlueRain
 
 		private readonly Dictionary<string, InjectedModule> _injectedModules;
 
-		private bool IsExternal { get { return _memory is ExternalProcessMemory; } }
+		private bool IsExternal => _memory is ExternalProcessMemory;
 
 		/// <summary>
 		/// Gets the modules this injector has successfully injected.
@@ -34,10 +34,7 @@ namespace BlueRain
 		/// <value>
 		/// The injected modules.
 		/// </value>
-		public IReadOnlyDictionary<string, InjectedModule> InjectedModules
-		{
-			get { return _injectedModules; }
-		}
+		public IReadOnlyDictionary<string, InjectedModule> InjectedModules => _injectedModules;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Injector" /> class.
