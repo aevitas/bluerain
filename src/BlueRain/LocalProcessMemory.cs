@@ -9,12 +9,12 @@ using BlueRain.Common;
 namespace BlueRain
 {
 	/// <summary>
-	/// Provides memory manipulation functionality for local processes; ie. injected.
+	///     Provides memory manipulation functionality for local processes; ie. injected.
 	/// </summary>
 	public sealed unsafe class LocalProcessMemory : NativeMemory
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LocalProcessMemory" /> class.
+		///     Initializes a new instance of the <see cref="LocalProcessMemory" /> class.
 		/// </summary>
 		/// <param name="process">The process.</param>
 		/// <param name="createInjector">if set to <c>true</c> creates an injector for module loading support.</param>
@@ -25,12 +25,12 @@ namespace BlueRain
 
 		public override AllocatedMemory Allocate(UIntPtr size)
 		{
-			IntPtr alloc = Marshal.AllocHGlobal((int) size);
-			return new AllocatedMemory(alloc, (uint)size, this);
+			var alloc = Marshal.AllocHGlobal((int) size);
+			return new AllocatedMemory(alloc, (uint) size, this);
 		}
 
 		/// <summary>
-		/// Reads the specified amount of bytes from the specified address.
+		///     Reads the specified amount of bytes from the specified address.
 		/// </summary>
 		/// <param name="address">The address.</param>
 		/// <param name="count">The count.</param>
@@ -44,14 +44,14 @@ namespace BlueRain
 			var buffer = new byte[count];
 			var ptr = (byte*) address;
 
-			for (int i = 0; i < count; i++)
+			for (var i = 0; i < count; i++)
 				buffer[i] = ptr[i];
 
 			return buffer;
 		}
 
 		/// <summary>
-		/// Writes the specified bytes at the specified address.
+		///     Writes the specified bytes at the specified address.
 		/// </summary>
 		/// <param name="address">The address.</param>
 		/// <param name="bytes">The bytes.</param>
@@ -62,12 +62,12 @@ namespace BlueRain
 				address = ToAbsolute(address);
 
 			var ptr = (byte*) address;
-			for (int i = 0; i < bytes.Length; i++)
+			for (var i = 0; i < bytes.Length; i++)
 				ptr[i] = bytes[i];
 		}
 
 		/// <summary>
-		/// Reads a value of the specified type at the specified address.
+		///     Reads a value of the specified type at the specified address.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="address">The address.</param>
@@ -82,7 +82,7 @@ namespace BlueRain
 		}
 
 		/// <summary>
-		/// Reads the specified amount of values of the specified type at the specified address.
+		///     Reads the specified amount of values of the specified type at the specified address.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="address">The address.</param>
@@ -95,14 +95,14 @@ namespace BlueRain
 				address = ToAbsolute(address);
 
 			var ret = new T[count];
-			for (int i = 0; i < count; i++)
+			for (var i = 0; i < count; i++)
 				ret[i] = Read<T>(address + (MarshalCache<T>.Size*i), isRelative);
 
 			return ret;
 		}
 
 		/// <summary>
-		/// Writes the specified value at the specfied address.
+		///     Writes the specified value at the specfied address.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="address">The address.</param>
@@ -122,7 +122,7 @@ namespace BlueRain
 
 			if (!MarshalCache<T>.TypeRequiresMarshal)
 			{
-				T val = default(T);
+				var val = default(T);
 				// If the (value) type doesn't require marshalling, we can simply use MoveMemory to move the entire
 				// thing in one swoop. This is significantly faster than having it go through the Marshal.
 				var ptr = MarshalCache<T>.GetUnsafePtr(ref val);

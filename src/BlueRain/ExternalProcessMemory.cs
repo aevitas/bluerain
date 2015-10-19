@@ -9,22 +9,29 @@ using BlueRain.Common;
 namespace BlueRain
 {
 	/// <summary>
-	/// Provides functionality for reading from, writing to, and allocating memory in external processes.
-	/// This class relies on a handle to the remote process and to its main thread to perform memory reading and writing.
+	///     Provides functionality for reading from, writing to, and allocating memory in external processes.
+	///     This class relies on a handle to the remote process and to its main thread to perform memory reading and writing.
 	/// </summary>
 	public sealed class ExternalProcessMemory : NativeMemory
 	{
-		internal readonly SafeMemoryHandle ProcessHandle;
 		private readonly SafeMemoryHandle _mainThreadHandle;
+		internal readonly SafeMemoryHandle ProcessHandle;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ExternalProcessMemory" /> class.
+		///     Initializes a new instance of the <see cref="ExternalProcessMemory" /> class.
 		/// </summary>
 		/// <param name="process">The process.</param>
 		/// <param name="access">The access flags.</param>
 		/// <param name="createInjector">if set to <c>true</c> creates an injector for module loading support.</param>
-		/// <exception cref="PlatformNotSupportedException">The platform is Windows 98 or Windows Millennium Edition (Windows Me); set the <see cref="P:System.Diagnostics.ProcessStartInfo.UseShellExecute" /> property to false to access this property on Windows 98 and Windows Me.</exception>
-		/// <exception cref="InvalidOperationException">The process's <see cref="P:System.Diagnostics.Process.Id" /> property has not been set.-or- There is no process associated with this <see cref="T:System.Diagnostics.Process" /> object.</exception>
+		/// <exception cref="PlatformNotSupportedException">
+		///     The platform is Windows 98 or Windows Millennium Edition (Windows Me);
+		///     set the <see cref="P:System.Diagnostics.ProcessStartInfo.UseShellExecute" /> property to false to access this
+		///     property on Windows 98 and Windows Me.
+		/// </exception>
+		/// <exception cref="InvalidOperationException">
+		///     The process's <see cref="P:System.Diagnostics.Process.Id" /> property has
+		///     not been set.-or- There is no process associated with this <see cref="T:System.Diagnostics.Process" /> object.
+		/// </exception>
 		public ExternalProcessMemory(Process process,
 			ProcessAccess access, bool createInjector = false) : base(process, createInjector)
 		{
@@ -37,14 +44,22 @@ namespace BlueRain
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ExternalProcessMemory" /> class.
-		/// This constructor opens a handle to the specified process using the following flags:
-		/// ProcessAccess.CreateThread | ProcessAccess.QueryInformation | ProcessAccess.VMRead | ProcessAccess.VMWrite | ProcessAccess.VMOperation | ProcessAccess.SetInformation
+		///     Initializes a new instance of the <see cref="ExternalProcessMemory" /> class.
+		///     This constructor opens a handle to the specified process using the following flags:
+		///     ProcessAccess.CreateThread | ProcessAccess.QueryInformation | ProcessAccess.VMRead | ProcessAccess.VMWrite |
+		///     ProcessAccess.VMOperation | ProcessAccess.SetInformation
 		/// </summary>
 		/// <param name="process">The process.</param>
 		/// <param name="createInjector">if set to <c>true</c> creates an injector for module loading support.</param>
-		/// <exception cref="PlatformNotSupportedException">The platform is Windows 98 or Windows Millennium Edition (Windows Me); set the <see cref="P:System.Diagnostics.ProcessStartInfo.UseShellExecute" /> property to false to access this property on Windows 98 and Windows Me.</exception>
-		/// <exception cref="InvalidOperationException">The process's <see cref="P:System.Diagnostics.Process.Id" /> property has not been set.-or- There is no process associated with this <see cref="T:System.Diagnostics.Process" /> object.</exception>
+		/// <exception cref="PlatformNotSupportedException">
+		///     The platform is Windows 98 or Windows Millennium Edition (Windows Me);
+		///     set the <see cref="P:System.Diagnostics.ProcessStartInfo.UseShellExecute" /> property to false to access this
+		///     property on Windows 98 and Windows Me.
+		/// </exception>
+		/// <exception cref="InvalidOperationException">
+		///     The process's <see cref="P:System.Diagnostics.Process.Id" /> property has
+		///     not been set.-or- There is no process associated with this <see cref="T:System.Diagnostics.Process" /> object.
+		/// </exception>
 		public ExternalProcessMemory(Process process, bool createInjector = false) : this(process,
 			ProcessAccess.CreateThread | ProcessAccess.QueryInformation | ProcessAccess.VMRead |
 			ProcessAccess.VMWrite | ProcessAccess.VMOperation | ProcessAccess.SetInformation, createInjector)
@@ -58,7 +73,7 @@ namespace BlueRain
 		}
 
 		/// <summary>
-		/// Allocates a chunk of memory of the specified size in the remote process.
+		///     Allocates a chunk of memory of the specified size in the remote process.
 		/// </summary>
 		/// <param name="size">The size.</param>
 		/// <returns></returns>
@@ -74,6 +89,26 @@ namespace BlueRain
 
 			throw new BlueRainException($"Couldn't allocate {size.ToUInt32()} sized chunk!");
 		}
+
+		#region Implementation of IDisposable
+
+		/// <summary>
+		///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+		/// </summary>
+		public override void Dispose()
+		{
+			if (IsDisposed)
+				return;
+
+			ProcessHandle?.Dispose();
+			_mainThreadHandle?.Dispose();
+
+			Process.LeaveDebugMode();
+
+			base.Dispose();
+		}
+
+		#endregion
 
 		#region P/Invokes
 
@@ -105,18 +140,21 @@ namespace BlueRain
 		#region Overrides of NativeMemory
 
 		/// <summary>
-		/// Reads the specified amount of bytes from the specified address.
+		///     Reads the specified amount of bytes from the specified address.
 		/// </summary>
 		/// <param name="address">The address.</param>
 		/// <param name="count">The count.</param>
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException">Address may not be zero, and count may not be zero.</exception>
-		/// <exception cref="BlueRainReadException">Thrown if the ReadProcessMemory operation fails, or doesn't return the specified amount of bytes.</exception>
+		/// <exception cref="BlueRainReadException">
+		///     Thrown if the ReadProcessMemory operation fails, or doesn't return the
+		///     specified amount of bytes.
+		/// </exception>
 		public override unsafe byte[] ReadBytes(IntPtr address, int count, bool isRelative = false)
 		{
-			Requires.NotEqual(count, 0, "count");
-			Requires.NotEqual(address, IntPtr.Zero, "address");
+			Requires.NotEqual(count, 0, nameof(count));
+			Requires.NotEqual(address, IntPtr.Zero, nameof(address));
 
 			if (isRelative)
 				address = ToAbsolute(address);
@@ -136,18 +174,21 @@ namespace BlueRain
 		}
 
 		/// <summary>
-		/// Writes the specified bytes at the specified address.
+		///     Writes the specified bytes at the specified address.
 		/// </summary>
 		/// <param name="address">The address.</param>
 		/// <param name="bytes">The bytes.</param>
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <returns></returns>
 		/// <exception cref="BlueRain.Common.BlueRainWriteException"></exception>
-		/// <exception cref="OverflowException">The array is multidimensional and contains more than <see cref="F:System.Int32.MaxValue" /> elements.</exception>
+		/// <exception cref="OverflowException">
+		///     The array is multidimensional and contains more than
+		///     <see cref="F:System.Int32.MaxValue" /> elements.
+		/// </exception>
 		public override void WriteBytes(IntPtr address, byte[] bytes, bool isRelative = false)
 		{
-			Requires.NotEqual(address, IntPtr.Zero, "address");
-			Requires.NotEqual(bytes.Length, 0, "bytes");
+			Requires.NotEqual(address, IntPtr.Zero, nameof(address));
+			Requires.NotEqual(bytes.Length, 0, nameof(bytes));
 
 			uint oldProtect;
 			int numWritten;
@@ -166,18 +207,24 @@ namespace BlueRain
 		}
 
 		/// <summary>
-		/// Reads a value of the specified type at the specified address.
+		///     Reads a value of the specified type at the specified address.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="address">The address.</param>
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException">Address may not be zero, and count may not be zero.</exception>
-		/// <exception cref="BlueRainReadException">Thrown if the ReadProcessMemory operation fails, or doesn't return the specified amount of bytes.</exception>
-		/// <exception cref="MissingMethodException">The class specified by <paramref name="T" /> does not have an accessible default constructor. </exception>
+		/// <exception cref="BlueRainReadException">
+		///     Thrown if the ReadProcessMemory operation fails, or doesn't return the
+		///     specified amount of bytes.
+		/// </exception>
+		/// <exception cref="MissingMethodException">
+		///     The class specified by <paramref name="T" /> does not have an accessible
+		///     default constructor.
+		/// </exception>
 		public override unsafe T Read<T>(IntPtr address, bool isRelative = false)
 		{
-			Requires.NotEqual(address, IntPtr.Zero, "address");
+			Requires.NotEqual(address, IntPtr.Zero, nameof(address));
 
 			var size = MarshalCache<T>.Size;
 			// Unsafe context doesn't allow for the use of await - run the read synchronously.
@@ -188,7 +235,7 @@ namespace BlueRain
 		}
 
 		/// <summary>
-		/// Reads the specified amount of values of the specified type at the specified address.
+		///     Reads the specified amount of values of the specified type at the specified address.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="address">The address.</param>
@@ -196,37 +243,46 @@ namespace BlueRain
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException">Address may not be zero, and count may not be zero.</exception>
-		/// <exception cref="BlueRainReadException">Thrown if the ReadProcessMemory operation fails, or doesn't return the specified amount of bytes.</exception>
-		/// <exception cref="MissingMethodException">The class specified by <paramref name="T" /> does not have an accessible default constructor. </exception>
+		/// <exception cref="BlueRainReadException">
+		///     Thrown if the ReadProcessMemory operation fails, or doesn't return the
+		///     specified amount of bytes.
+		/// </exception>
+		/// <exception cref="MissingMethodException">
+		///     The class specified by <paramref name="T" /> does not have an accessible
+		///     default constructor.
+		/// </exception>
 		public override T[] Read<T>(IntPtr address, int count, bool isRelative = false)
 		{
-			Requires.NotEqual(address, IntPtr.Zero, "address");
+			Requires.NotEqual(address, IntPtr.Zero, nameof(address));
 
 			var size = MarshalCache<T>.Size;
 
-			T[] ret = new T[count];
+			var ret = new T[count];
 
 			// Read = add + n * size
-			for (int i = 0; i < count; i++)
+			for (var i = 0; i < count; i++)
 				ret[i] = Read<T>(address + (i*size), isRelative);
 
 			return ret;
 		}
 
 		/// <summary>
-		/// Writes the specified value at the specfied address.
+		///     Writes the specified value at the specfied address.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="address">The address.</param>
 		/// <param name="value">The value.</param>
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <returns></returns>
-		/// <exception cref="OverflowException">The array is multidimensional and contains more than <see cref="F:System.Int32.MaxValue" /> elements.</exception>
+		/// <exception cref="OverflowException">
+		///     The array is multidimensional and contains more than
+		///     <see cref="F:System.Int32.MaxValue" /> elements.
+		/// </exception>
 		/// <exception cref="BlueRainWriteException">WriteProcessMemory failed.</exception>
 		/// <exception cref="ArgumentException"><paramref name="T" /> is a reference type that is not a formatted class. </exception>
 		public override unsafe void Write<T>(IntPtr address, T value, bool isRelative = false)
 		{
-			Requires.NotEqual(address, IntPtr.Zero, "address");
+			Requires.NotEqual(address, IntPtr.Zero, nameof(address));
 
 			// TODO: Optimize this method to take marshalling requirements into account
 
@@ -237,26 +293,6 @@ namespace BlueRain
 				Marshal.StructureToPtr(value, (IntPtr) b, true);
 
 			WriteBytes(address, buffer, isRelative);
-		}
-
-		#endregion
-
-		#region Implementation of IDisposable
-
-		/// <summary>
-		/// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-		/// </summary>
-		public override void Dispose()
-		{
-			if (IsDisposed)
-				return;
-
-			ProcessHandle?.Dispose();
-			_mainThreadHandle?.Dispose();
-
-			Process.LeaveDebugMode();
-
-			base.Dispose();
 		}
 
 		#endregion

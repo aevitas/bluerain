@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 namespace BlueRain
 {
 	/// <summary>
-	/// Contains all required P/invoke or "unsafe" Win32 call signatures.
+	///     Contains all required P/invoke or "unsafe" Win32 call signatures.
 	/// </summary>
 	internal static class UnsafeNativeMethods
 	{
@@ -32,8 +32,8 @@ namespace BlueRain
 
 		[DllImport(Kernel32, ExactSpelling = true, SetLastError = true)]
 		internal static extern SafeMemoryHandle CreateRemoteThread(IntPtr hProcess,
-		   IntPtr lpThreadAttributes, uint dwStackSize, IntPtr
-		   lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
+			IntPtr lpThreadAttributes, uint dwStackSize, IntPtr
+				lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
 
 		[DllImport(Kernel32, SetLastError = true)]
 		internal static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);

@@ -37,6 +37,23 @@ namespace BlueRain
 		/// </summary>
 		public IntPtr BaseAddress => Module.BaseAddress;
 
+		#region Implementation of IDisposable
+
+		/// <summary>
+		///     Releases unmanaged and - optionally - managed resources.
+		/// </summary>
+		public void Dispose()
+		{
+			if (_isDisposed)
+				return;
+
+			Free(_memory is LocalProcessMemory);
+
+			_isDisposed = true;
+		}
+
+		#endregion
+
 		/// <summary>
 		///     Obtains a pointer to the specified exported function.
 		/// </summary>
@@ -72,18 +89,25 @@ namespace BlueRain
 		}
 
 		/// <summary>
-		/// Calls the specified export with the specified args.
+		///     Calls the specified export with the specified args.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="exportName">Name of the export.</param>
 		/// <param name="parameter">The argument.</param>
-		/// <param name="callWithParameter">if set to <c>true</c>, the specified export will be called with the specified parameter.</param>
+		/// <param name="callWithParameter">
+		///     if set to <c>true</c>, the specified export will be called with the specified
+		///     parameter.
+		/// </param>
 		/// <returns></returns>
 		/// <exception cref="System.ArgumentNullException">exportName</exception>
-		/// <exception cref="BlueRainException">Couldn't resolve export named with name  + exportName +  in remotely injected
-		/// library.</exception>
-		/// <exception cref="BlueRainInjectionException">WaitForSingleObject returned an unexpected value while waiting for the
-		/// remote thread to be created for export call.</exception>
+		/// <exception cref="BlueRainException">
+		///     Couldn't resolve export named with name  + exportName +  in remotely injected
+		///     library.
+		/// </exception>
+		/// <exception cref="BlueRainInjectionException">
+		///     WaitForSingleObject returned an unexpected value while waiting for the
+		///     remote thread to be created for export call.
+		/// </exception>
 		public IntPtr Call<T>(string exportName, T parameter, bool callWithParameter = false) where T : struct
 		{
 			// The idea behind this method's quite simple. We can only call an __stdcall export with one parameter,
@@ -186,22 +210,5 @@ namespace BlueRain
 
 			return exitCode != 0;
 		}
-
-		#region Implementation of IDisposable
-
-		/// <summary>
-		///     Releases unmanaged and - optionally - managed resources.
-		/// </summary>
-		public void Dispose()
-		{
-			if (_isDisposed)
-				return;
-
-			Free(_memory is LocalProcessMemory);
-
-			_isDisposed = true;
-		}
-
-		#endregion
 	}
 }

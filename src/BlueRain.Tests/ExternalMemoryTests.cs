@@ -15,7 +15,7 @@ namespace BlueRain.Tests
 		[TestMethod]
 		public void ReadInt32()
 		{
-			int x = 5;
+			var x = 5;
 			var ret = Memory.Read<int>(new IntPtr(&x));
 
 			Assert.IsTrue(ret == x);
@@ -24,7 +24,7 @@ namespace BlueRain.Tests
 		[TestMethod]
 		public void Alloc()
 		{
-			int size = 512;
+			var size = 512;
 
 			var alloc = Memory.Allocate((UIntPtr) size);
 
@@ -39,7 +39,7 @@ namespace BlueRain.Tests
 		[TestMethod]
 		public void AllocatedReadWrite()
 		{
-			int size = 4;
+			var size = 4;
 
 			var alloc = Memory.Allocate((UIntPtr) size);
 
@@ -51,7 +51,7 @@ namespace BlueRain.Tests
 		[TestMethod]
 		public void StringReadWrite()
 		{
-			string s = "test string";
+			var s = "test string";
 
 			var alloc = Memory.Allocate((UIntPtr) s.Length);
 
@@ -76,7 +76,7 @@ namespace BlueRain.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(BlueRainReadException))]
+		[ExpectedException(typeof (BlueRainReadException))]
 		public void RelativeRead()
 		{
 			Memory.ReadBytes(new IntPtr(0x1500), 10, true);
@@ -85,7 +85,7 @@ namespace BlueRain.Tests
 		[TestMethod]
 		public void MultipleReads()
 		{
-			var vec = new Vector3() { X = 1, Y = 2, Z = 3 };
+			var vec = new Vector3 {X = 1, Y = 2, Z = 3};
 			var ret = Memory.Read<float>(new IntPtr(&vec), 3);
 
 			Assert.IsTrue(Math.Abs(ret[0] - vec.X) < 0.0001f);
@@ -94,36 +94,27 @@ namespace BlueRain.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(BlueRainWriteException))]
+		[ExpectedException(typeof (BlueRainWriteException))]
 		public void RelativeWrite()
 		{
 			Memory.WriteBytes(new IntPtr(0x1000), new byte[10], true);
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(BlueRainReadException))]
+		[ExpectedException(typeof (BlueRainReadException))]
 		public void WriteMultipleVals()
 		{
-			int x = 10;
+			var x = 10;
 
 			// This will throw a read exception because it has to read to deref.
 			Memory.Write(true, 1, new IntPtr(&x), new IntPtr(0x0), new IntPtr(0x0));
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(BlueRainReadException))]
+		[ExpectedException(typeof (BlueRainReadException))]
 		public void ReadMultipleVals()
 		{
 			Memory.Read<int>(true, new IntPtr(0x1000), new IntPtr(0x20), new IntPtr(0x1000));
-		}
-
-		internal enum TestEnum
-		{
-			A,
-			B,
-			C,
-			D,
-			E
 		}
 
 		[TestMethod]
@@ -141,7 +132,7 @@ namespace BlueRain.Tests
 			var enumSize = MarshalCache<TestEnum>.Size;
 
 			Assert.IsTrue(boolSize == 1);
-			Assert.AreEqual(enumSize, Marshal.SizeOf(typeof(int)));
+			Assert.AreEqual(enumSize, Marshal.SizeOf(typeof (int)));
 		}
 
 		[TestMethod]
@@ -179,6 +170,15 @@ namespace BlueRain.Tests
 			Assert.IsTrue(epm.IsDisposed);
 
 			epm.Dispose();
+		}
+
+		internal enum TestEnum
+		{
+			A,
+			B,
+			C,
+			D,
+			E
 		}
 
 

@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 namespace BlueRain.Common
 {
 	/// <summary>
-	/// Provides caching for types commonly used through marshalling.
+	///     Provides caching for types commonly used through marshalling.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	public static class MarshalCache<T>
@@ -29,6 +29,8 @@ namespace BlueRain.Common
 
 		/// <summary> True if this type requires the Marshaler to map variables. (No direct pointer dereferencing) </summary>
 		public static bool TypeRequiresMarshal;
+
+		internal static readonly GetUnsafePtrDelegate GetUnsafePtr;
 
 		static MarshalCache()
 		{
@@ -66,7 +68,7 @@ namespace BlueRain.Common
 				string.Format("GetPinnedPtr<{0}>", typeof (T).FullName.Replace(".", "<>")), typeof (void*),
 				new[] {typeof (T).MakeByRefType()},
 				typeof (MarshalCache<>).Module);
-			ILGenerator generator = method.GetILGenerator();
+			var generator = method.GetILGenerator();
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Conv_U);
 			generator.Emit(OpCodes.Ret);
@@ -75,7 +77,5 @@ namespace BlueRain.Common
 
 
 		internal unsafe delegate void* GetUnsafePtrDelegate(ref T value);
-
-		internal static readonly GetUnsafePtrDelegate GetUnsafePtr;
 	}
 }
