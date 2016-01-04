@@ -12,40 +12,31 @@ using BlueRain.Common;
 namespace BlueRain
 {
 	/// <summary>
-	/// This type provides injector support for both internal and external memory manipulators.
-	/// When out of process, we call CreateRemoteThread to force the proc to load our module - when we're in-process,
-	/// we just call LoadLibrary directly. This way we can support both types with a single class, depending on what type
-	/// of NativeMemory implementation we're constructed with.
+	///     This type provides injector support for both internal and external memory manipulators.
+	///     When out of process, we call CreateRemoteThread to force the proc to load our module - when we're in-process,
+	///     we just call LoadLibrary directly. This way we can support both types with a single class, depending on what type
+	///     of NativeMemory implementation we're constructed with.
 	/// </summary>
 	public class Injector : IDisposable
 	{
-		private readonly NativeMemory _memory;
 		private readonly bool _ejectOnDispose;
-		private bool _disposed;
 
 		private readonly Dictionary<string, InjectedModule> _injectedModules;
-
-		private bool IsExternal { get { return _memory is ExternalProcessMemory; } }
-
-		/// <summary>
-		/// Gets the modules this injector has successfully injected.
-		/// The key represents the full path to the module, the value the InjectedModule type.
-		/// </summary>
-		/// <value>
-		/// The injected modules.
-		/// </value>
-		public IReadOnlyDictionary<string, InjectedModule> InjectedModules
-		{
-			get { return _injectedModules; }
-		}
+		private readonly NativeMemory _memory;
+		private bool _disposed;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Injector" /> class.
+		///     Initializes a new instance of the <see cref="Injector" /> class.
 		/// </summary>
 		/// <param name="memory">The memory.</param>
-		/// <param name="ejectOnDispose">if set to <c>true</c> library is freed from the target process when the injector is disposed.</param>
+		/// <param name="ejectOnDispose">
+		///     if set to <c>true</c> library is freed from the target process when the injector is
+		///     disposed.
+		/// </param>
 		internal Injector(NativeMemory memory, bool ejectOnDispose = false)
 		{
+			Requires.NotNull(memory, nameof(memory));
+
 			var epm = memory as ExternalProcessMemory;
 			if (epm != null && epm.ProcessHandle.IsInvalid)
 				throw new ArgumentException(
@@ -56,8 +47,50 @@ namespace BlueRain
 			_injectedModules = new Dictionary<string, InjectedModule>();
 		}
 
+		private bool IsExternal => _memory is ExternalProcessMemory;
+
 		/// <summary>
-		/// Injects the specified library path into the process the memory instance is currently attached to.
+		///     Gets the modules this injector has successfully injected.
+		///     The key represents the full path to the module, the value the InjectedModule type.
+		/// </summary>
+		/// <value>
+		///     The injected modules.
+		/// </value>
+		public IReadOnlyDictionary<string, InjectedModule> InjectedModules => _injectedModules;
+
+		#region Implementation of IDisposable
+
+		/// <summary>
+		///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+		/// </summary>
+		public void Dispose()
+		{
+			if (_disposed)
+				return;
+
+			if (_ejectOnDispose)
+			{
+				try
+				{
+					// Use this once we figure out how to properly notify success/failure.
+					bool success;
+					foreach (var m in InjectedModules)
+						if (!m.Value.Free(IsExternal))
+							success = false;
+				}
+				catch (BlueRainException)
+				{
+					// We don't want Dispose to throw when ejecting a module goes wrong.
+				}
+			}
+
+			_disposed = true;
+		}
+
+		#endregion
+
+		/// <summary>
+		///     Injects the specified library path into the process the memory instance is currently attached to.
 		/// </summary>
 		/// <param name="libraryPath">The library path.</param>
 		/// <returns></returns>
@@ -118,7 +151,7 @@ namespace BlueRain
 
 				var pathBytes = Encoding.Unicode.GetBytes(path);
 
-				using (var alloc = memory.Allocate((UIntPtr)pathBytes.Length))
+				using (var alloc = memory.Allocate((UIntPtr) pathBytes.Length))
 				{
 					alloc.WriteBytes(IntPtr.Zero, pathBytes);
 
@@ -126,7 +159,8 @@ namespace BlueRain
 						loadLibraryPtr, alloc.Address, 0, IntPtr.Zero);
 
 					if (threadHandle.IsInvalid)
-						throw new BlueRainInjectionException("Couldn't obtain a handle to the remotely created thread for module injection!");
+						throw new BlueRainInjectionException(
+							"Couldn't obtain a handle to the remotely created thread for module injection!");
 				}
 
 				// ThreadWaitValue.Infinite = 0xFFFFFFFF = uint.MaxValue - Object0 = 0x0
@@ -141,7 +175,8 @@ namespace BlueRain
 				// Let's make sure our module is actually present in the remote process now (assuming it's doing nothing special to hide itself..)
 				var moduleHandle = UnsafeNativeMethods.GetModuleHandle(libraryFileName);
 				if (moduleHandle.IsInvalid)
-					throw new BlueRainInjectionException("Couldn't obtain module handle to remotely injected library after LoadLibraryW!");
+					throw new BlueRainInjectionException(
+						"Couldn't obtain module handle to remotely injected library after LoadLibraryW!");
 
 				ourModule = memory.Process.Modules.Cast<ProcessModule>()
 					.FirstOrDefault(m => m.BaseAddress == moduleHandle.DangerousGetHandle());
@@ -179,12 +214,15 @@ namespace BlueRain
 		}
 
 		/// <summary>
-		/// Ejects the specified path.
+		///     Ejects the specified path.
 		/// </summary>
 		/// <param name="path">The path.</param>
 		/// <returns></returns>
 		/// <exception cref="BlueRainException">Couldn't eject the specified library - it wasn't injected by this injector:  + path</exception>
-		/// <exception cref="BlueRainInjectionException">WaitForSingleObject returned an unexpected value while waiting for the remote thread to be created for module eject.</exception>
+		/// <exception cref="BlueRainInjectionException">
+		///     WaitForSingleObject returned an unexpected value while waiting for the
+		///     remote thread to be created for module eject.
+		/// </exception>
 		public bool Eject(string path)
 		{
 			if (!InjectedModules.ContainsKey(path))
@@ -194,36 +232,5 @@ namespace BlueRain
 
 			return lib.Value.Free(IsExternal);
 		}
-
-		#region Implementation of IDisposable
-
-		/// <summary>
-		/// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-		/// </summary>
-		public void Dispose()
-		{
-			if (_disposed)
-				return;
-
-			if (_ejectOnDispose)
-			{
-				try
-				{
-					// Use this once we figure out how to properly notify success/failure.
-					bool success;
-					foreach (var m in InjectedModules)
-						if (!m.Value.Free(IsExternal))
-							success = false;
-				}
-				catch (BlueRainException)
-				{
-					// We don't want Dispose to throw when ejecting a module goes wrong.
-				}
-			}
-
-			_disposed = true;
-		}
-
-		#endregion
 	}
 }

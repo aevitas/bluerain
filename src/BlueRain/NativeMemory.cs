@@ -24,26 +24,13 @@ namespace BlueRain
 		private int _fastBaseAddress;
 
 		/// <summary>
-		/// Gets the module injector/loader for this memory instance.
-		/// </summary>
-		public Injector Injector { get; private set; }
-
-		/// <summary>
-		/// Gets a value indicating whether this instance is disposed.
-		/// </summary>
-		/// <value>
-		/// <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
-		/// </value>
-		public bool IsDisposed { get; private set; }
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="NativeMemory" /> class.
+		///     Initializes a new instance of the <see cref="NativeMemory" /> class.
 		/// </summary>
 		/// <param name="process">The process.</param>
 		/// <param name="createInjector">if set to <c>true</c> creates an injector for module loading support.</param>
 		protected NativeMemory(Process process, bool createInjector = false)
 		{
-			Requires.NotNull(process, "process");
+			Requires.NotNull(process, nameof(process));
 
 			Process = process;
 
@@ -59,6 +46,19 @@ namespace BlueRain
 		}
 
 		/// <summary>
+		///     Gets the module injector/loader for this memory instance.
+		/// </summary>
+		public Injector Injector { get; }
+
+		/// <summary>
+		///     Gets a value indicating whether this instance is disposed.
+		/// </summary>
+		/// <value>
+		///     <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
+		/// </value>
+		public bool IsDisposed { get; private set; }
+
+		/// <summary>
 		///     Gets or sets the base address of the wrapped process' main module.
 		/// </summary>
 		public IntPtr BaseAddress
@@ -72,7 +72,32 @@ namespace BlueRain
 		}
 
 		/// <summary>
-		/// Allocates a chunk of memory of the specified size in the process.
+		///     Gets or sets the process this NativeMemory instance is wrapped around.
+		/// </summary>
+		public Process Process { [Pure] get; protected set; }
+
+		#region Implementation of IDisposable
+
+		/// <summary>
+		///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+		/// </summary>
+		public virtual void Dispose()
+		{
+			if (IsDisposed)
+				return;
+
+			Injector?.Dispose();
+
+			// Pretty much all we "have" to clean up.
+			Process.LeaveDebugMode();
+
+			IsDisposed = true;
+		}
+
+		#endregion
+
+		/// <summary>
+		///     Allocates a chunk of memory of the specified size in the process.
 		/// </summary>
 		/// <param name="size">The size.</param>
 		/// <returns></returns>
@@ -80,7 +105,7 @@ namespace BlueRain
 		public abstract AllocatedMemory Allocate(UIntPtr size);
 
 		/// <summary>
-		/// Allocates a chunk of memory of the specified size in the process.
+		///     Allocates a chunk of memory of the specified size in the process.
 		/// </summary>
 		/// <param name="size">The size.</param>
 		/// <returns></returns>
@@ -88,11 +113,6 @@ namespace BlueRain
 		{
 			return Allocate((UIntPtr) size);
 		}
-
-		/// <summary>
-		///     Gets or sets the process this NativeMemory instance is wrapped around.
-		/// </summary>
-		public Process Process { [Pure] get; protected set; }
 
 		/// <summary>
 		///     Called when the process this Memory instance is attach to exits.
@@ -105,14 +125,14 @@ namespace BlueRain
 		}
 
 		/// <summary>
-		///		Gets the module with the specified name from the process.
+		///     Gets the module with the specified name from the process.
 		/// </summary>
 		/// <param name="moduleName">Name of the module.</param>
 		/// <returns></returns>
 		public ProcessModule GetModule(string moduleName)
 		{
-			Requires.Condition(() => !string.IsNullOrEmpty(moduleName), "moduleName");
-			Requires.NotNull(Process, "process");
+			Requires.Condition(() => !string.IsNullOrEmpty(moduleName), nameof(moduleName));
+			Requires.NotNull(Process, nameof(Process));
 
 			var modules = Process.Modules.Cast<ProcessModule>();
 
@@ -129,7 +149,7 @@ namespace BlueRain
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public IntPtr ToRelative(IntPtr absoluteAddress)
 		{
-			Requires.NotEqual(absoluteAddress, IntPtr.Zero, "absoluteAddress");
+			Requires.NotEqual(absoluteAddress, IntPtr.Zero, nameof(absoluteAddress));
 
 			return absoluteAddress - _fastBaseAddress;
 		}
@@ -168,15 +188,15 @@ namespace BlueRain
 		/// <exception cref="ArgumentNullException">Encoding may not be null.</exception>
 		/// <exception cref="ArgumentException">Address may not be IntPtr.Zero.</exception>
 		/// <exception cref="DecoderFallbackException">
-		///		A fallback occurred (see Character Encoding in the .NET Framework for
-		///		complete explanation)-and-<see cref="P:System.Text.Encoding.DecoderFallback" /> is set to 
-		///		<see cref="T:System.Text.DecoderExceptionFallback" />.
+		///     A fallback occurred (see Character Encoding in the .NET Framework for
+		///     complete explanation)-and-<see cref="P:System.Text.Encoding.DecoderFallback" /> is set to
+		///     <see cref="T:System.Text.DecoderExceptionFallback" />.
 		/// </exception>
 		public virtual string ReadString(IntPtr address, Encoding encoding, int maximumLength = 512,
 			bool isRelative = false)
 		{
-			Requires.NotEqual(address, IntPtr.Zero, "address");
-			Requires.NotNull(encoding, "encoding");
+			Requires.NotEqual(address, IntPtr.Zero, nameof(address));
+			Requires.NotNull(encoding, nameof(encoding));
 
 			var buffer = ReadBytes(address, maximumLength, isRelative);
 			var ret = encoding.GetString(buffer);
@@ -208,8 +228,8 @@ namespace BlueRain
 		/// </exception>
 		public virtual void WriteString(IntPtr address, string value, Encoding encoding, bool isRelative = false)
 		{
-			Requires.NotEqual(address, IntPtr.Zero, "address");
-			Requires.NotNull(encoding, "encoding");
+			Requires.NotEqual(address, IntPtr.Zero, nameof(address));
+			Requires.NotNull(encoding, nameof(encoding));
 
 			if (value[value.Length - 1] != '\0')
 			{
@@ -220,51 +240,69 @@ namespace BlueRain
 		}
 
 		/// <summary>
-		/// Reads a value of the specified type at the specified address. This method is used if multiple-pointer dereferences
-		/// are required.
+		///     Reads a value of the specified type at the specified address. This method is used if multiple-pointer dereferences
+		///     are required.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <param name="addresses">The addresses.</param>
 		/// <returns></returns>
-		/// <exception cref="BlueRainReadException">Thrown if the ReadProcessMemory operation fails, or doesn't return the specified amount of bytes.</exception>
-		/// <exception cref="MissingMethodException">The class specified by <paramref name="T" /> does not have an accessible default constructor. </exception>
+		/// <exception cref="BlueRainReadException">
+		///     Thrown if the ReadProcessMemory operation fails, or doesn't return the
+		///     specified amount of bytes.
+		/// </exception>
+		/// <exception cref="MissingMethodException">
+		///     The class specified by <paramref name="T" /> does not have an accessible
+		///     default constructor.
+		/// </exception>
 		/// <exception cref="ArgumentException">Address may not be zero, and count may not be zero.</exception>
-		/// <exception cref="OverflowException">On a 64-bit platform, the value of this instance is too large or too small to represent as a 32-bit signed integer. </exception>
+		/// <exception cref="OverflowException">
+		///     On a 64-bit platform, the value of this instance is too large or too small to
+		///     represent as a 32-bit signed integer.
+		/// </exception>
 		public virtual T Read<T>(bool isRelative = false, params IntPtr[] addresses) where T : struct
 		{
-			Requires.Condition(() => addresses.Length > 0, "addresses");
-			Requires.NotEqual(addresses[0], IntPtr.Zero, "addresses");
+			Requires.Condition(() => addresses.Length > 0, nameof(addresses));
+			Requires.NotEqual(addresses[0], IntPtr.Zero, nameof(addresses));
 
 			// We can just read right away if it's a single address - avoid the hassle.
 			if (addresses.Length == 1)
 				return Read<T>(addresses[0], isRelative);
 
-			IntPtr tempPtr = Read<IntPtr>(addresses[0], isRelative);
+			var tempPtr = Read<IntPtr>(addresses[0], isRelative);
 
-			for (int i = 1; i < addresses.Length - 1; i++)
+			for (var i = 1; i < addresses.Length - 1; i++)
 				tempPtr = Read<IntPtr>(tempPtr + addresses[i].ToInt32(), isRelative);
 
 			return Read<T>(tempPtr, isRelative);
 		}
 
 		/// <summary>
-		/// Writes the specified value at the specified address. This method is used if multiple-pointer dereferences are
-		/// required.
+		///     Writes the specified value at the specified address. This method is used if multiple-pointer dereferences are
+		///     required.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <param name="value">The value.</param>
 		/// <param name="addresses">The addresses.</param>
 		/// <returns></returns>
-		/// <exception cref="MissingMethodException">The class specified by <paramref name="T" /> does not have an accessible default constructor. </exception>
-		/// <exception cref="BlueRainReadException">Thrown if the ReadProcessMemory operation fails, or doesn't return the specified amount of bytes.</exception>
+		/// <exception cref="MissingMethodException">
+		///     The class specified by <paramref name="T" /> does not have an accessible
+		///     default constructor.
+		/// </exception>
+		/// <exception cref="BlueRainReadException">
+		///     Thrown if the ReadProcessMemory operation fails, or doesn't return the
+		///     specified amount of bytes.
+		/// </exception>
 		/// <exception cref="BlueRainWriteException">WriteProcessMemory failed.</exception>
-		/// <exception cref="OverflowException">The array is multidimensional and contains more than <see cref="F:System.Int32.MaxValue" /> elements.</exception>
+		/// <exception cref="OverflowException">
+		///     The array is multidimensional and contains more than
+		///     <see cref="F:System.Int32.MaxValue" /> elements.
+		/// </exception>
 		public virtual void Write<T>(bool isRelative, T value = default(T), params IntPtr[] addresses) where T : struct
 		{
-			Requires.Condition(() => addresses.Length > 0, "addresses");
-			Requires.NotEqual(addresses[0], IntPtr.Zero, "addresses");
+			Requires.Condition(() => addresses.Length > 0, nameof(addresses));
+			Requires.NotEqual(addresses[0], IntPtr.Zero, nameof(addresses));
 
 			// If a single addr is passed, just write it right away.
 			if (addresses.Length == 1)
@@ -274,9 +312,9 @@ namespace BlueRain
 			}
 
 			// Same thing as sequential reads - we read until we find the last addr, then we write to it.
-			IntPtr tempPtr = Read<IntPtr>(addresses[0]);
+			var tempPtr = Read<IntPtr>(addresses[0]);
 
-			for (int i = 1; i < addresses.Length - 1; i++)
+			for (var i = 1; i < addresses.Length - 1; i++)
 				tempPtr = Read<IntPtr>(tempPtr + addresses[i].ToInt32());
 
 			Write(tempPtr + addresses.Last().ToInt32(), value, isRelative);
@@ -340,27 +378,6 @@ namespace BlueRain
 
 		[DllImport("kernel32.dll")]
 		protected static extern SafeMemoryHandle OpenThread(ThreadAccess dwDesiredAccess, bool bInheritHandle, uint dwThreadId);
-
-		#endregion
-
-		#region Implementation of IDisposable
-
-		/// <summary>
-		/// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-		/// </summary>
-		public virtual void Dispose()
-		{
-			if (IsDisposed)
-				return;
-
-			if (Injector != null)
-				Injector.Dispose();
-
-			// Pretty much all we "have" to clean up.
-			Process.LeaveDebugMode();
-
-			IsDisposed = true;
-		}
 
 		#endregion
 	}

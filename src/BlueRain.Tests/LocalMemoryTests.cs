@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using BlueRain.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace BlueRain.Tests
@@ -25,26 +24,26 @@ namespace BlueRain.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(AccessViolationException))]
+		[ExpectedException(typeof (AccessViolationException))]
 		public void RelativeRead()
 		{
 			Memory.Read<int>(new IntPtr(0x1000), true);
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(AccessViolationException))]
+		[ExpectedException(typeof (AccessViolationException))]
 		public void RelativeWrite()
 		{
-			int a = 5;
+			var a = 5;
 			Memory.Write(new IntPtr(0x1000), 10, true);
 		}
 
 		[TestMethod]
 		public void ReadWriteStruct()
 		{
-			var vec = new Vector3() { X = 10, Y = 20, Z = 30};
+			var vec = new Vector3 {X = 10, Y = 20, Z = 30};
 
-			Memory.Write(new IntPtr(&vec), new Vector3() { X = 20, Y = 30, Z = 40});
+			Memory.Write(new IntPtr(&vec), new Vector3 {X = 20, Y = 30, Z = 40});
 
 			var read = Memory.Read<float>(new IntPtr(&vec), 3);
 
@@ -59,7 +58,7 @@ namespace BlueRain.Tests
 			var vec = new ReadingTestStruct();
 
 			// I'm going to hell for this..
-			int offset = 0;
+			var offset = 0;
 			Assert.AreEqual(Memory.Read<bool>(new IntPtr(&vec)), vec.Bool);
 			offset += sizeof (bool);
 			Assert.AreEqual(Memory.Read<byte>(new IntPtr(&vec) + offset), vec.Byte);
@@ -94,16 +93,16 @@ namespace BlueRain.Tests
 		[StructLayout(LayoutKind.Sequential, Pack = 1)]
 		private struct ReadingTestStruct
 		{
-			public bool Bool;
-			public byte Byte;
-			public sbyte Sbyte;
-			public char Char;
-			public int Int;
-			public uint Uint;
-			public long Long;
-			public ulong Ulong;
-			public short Short;
-			public ushort Ushort;
+			public readonly bool Bool;
+			public readonly byte Byte;
+			public readonly sbyte Sbyte;
+			public readonly char Char;
+			public readonly int Int;
+			public readonly uint Uint;
+			public readonly long Long;
+			public readonly ulong Ulong;
+			public readonly short Short;
+			public readonly ushort Ushort;
 		}
 	}
 }

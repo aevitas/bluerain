@@ -9,12 +9,12 @@ using System;
 namespace BlueRain.Common
 {
 	/// <summary>
-	/// Base exception type thrown by BlueRain.
+	///     Base exception type thrown by BlueRain.
 	/// </summary>
 	public class BlueRainException : Exception
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="BlueRainException"/> class.
+		///     Initializes a new instance of the <see cref="BlueRainException" /> class.
 		/// </summary>
 		/// <param name="message">The message that describes the error.</param>
 		public BlueRainException(string message)
@@ -24,12 +24,12 @@ namespace BlueRain.Common
 	}
 
 	/// <summary>
-	/// Exception thrown when a reading operation fails.
+	///     Exception thrown when a reading operation fails.
 	/// </summary>
 	public class BlueRainReadException : BlueRainException
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="BlueRainReadException"/> class.
+		///     Initializes a new instance of the <see cref="BlueRainReadException" /> class.
 		/// </summary>
 		/// <param name="message">The message that describes the error.</param>
 		public BlueRainReadException(string message)
@@ -39,7 +39,7 @@ namespace BlueRain.Common
 
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="BlueRainReadException"/> class.
+		///     Initializes a new instance of the <see cref="BlueRainReadException" /> class.
 		/// </summary>
 		/// <param name="address">The address.</param>
 		/// <param name="count">The count.</param>
@@ -51,12 +51,12 @@ namespace BlueRain.Common
 	}
 
 	/// <summary>
-	/// Exception thrown when a writing operation fails.
+	///     Exception thrown when a writing operation fails.
 	/// </summary>
 	public class BlueRainWriteException : BlueRainException
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="BlueRainWriteException"/> class.
+		///     Initializes a new instance of the <see cref="BlueRainWriteException" /> class.
 		/// </summary>
 		/// <param name="message">The message that describes the error.</param>
 		public BlueRainWriteException(string message)
@@ -65,7 +65,7 @@ namespace BlueRain.Common
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="BlueRainWriteException"/> class.
+		///     Initializes a new instance of the <see cref="BlueRainWriteException" /> class.
 		/// </summary>
 		/// <param name="address">The address.</param>
 		/// <param name="count">The count.</param>
@@ -76,12 +76,12 @@ namespace BlueRain.Common
 	}
 
 	/// <summary>
-	/// Exception thrown when an operation related to injection fails.
+	///     Exception thrown when an operation related to injection fails.
 	/// </summary>
 	public class BlueRainInjectionException : BlueRainException
 	{
 		/// <summary>
-		/// Initializes a new instance of the <see cref="BlueRainInjectionException"/> class.
+		///     Initializes a new instance of the <see cref="BlueRainInjectionException" /> class.
 		/// </summary>
 		/// <param name="message">The message that describes the error.</param>
 		public BlueRainInjectionException(string message) : base(message)

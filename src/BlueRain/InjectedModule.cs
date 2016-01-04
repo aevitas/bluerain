@@ -30,15 +30,29 @@ namespace BlueRain
 		/// <summary>
 		///     Gets the module handle that represents this module.
 		/// </summary>
-		public ProcessModule Module { get; private set; }
+		public ProcessModule Module { get; }
 
 		/// <summary>
 		///     Gets the base address of this module in the target process.
 		/// </summary>
-		public IntPtr BaseAddress
+		public IntPtr BaseAddress => Module.BaseAddress;
+
+		#region Implementation of IDisposable
+
+		/// <summary>
+		///     Releases unmanaged and - optionally - managed resources.
+		/// </summary>
+		public void Dispose()
 		{
-			get { return Module.BaseAddress; }
+			if (_isDisposed)
+				return;
+
+			Free(_memory is LocalProcessMemory);
+
+			_isDisposed = true;
 		}
+
+		#endregion
 
 		/// <summary>
 		///     Obtains a pointer to the specified exported function.
@@ -75,18 +89,25 @@ namespace BlueRain
 		}
 
 		/// <summary>
-		/// Calls the specified export with the specified args.
+		///     Calls the specified export with the specified args.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="exportName">Name of the export.</param>
 		/// <param name="parameter">The argument.</param>
-		/// <param name="callWithParameter">if set to <c>true</c>, the specified export will be called with the specified parameter.</param>
+		/// <param name="callWithParameter">
+		///     if set to <c>true</c>, the specified export will be called with the specified
+		///     parameter.
+		/// </param>
 		/// <returns></returns>
 		/// <exception cref="System.ArgumentNullException">exportName</exception>
-		/// <exception cref="BlueRainException">Couldn't resolve export named with name  + exportName +  in remotely injected
-		/// library.</exception>
-		/// <exception cref="BlueRainInjectionException">WaitForSingleObject returned an unexpected value while waiting for the
-		/// remote thread to be created for export call.</exception>
+		/// <exception cref="BlueRainException">
+		///     Couldn't resolve export named with name  + exportName +  in remotely injected
+		///     library.
+		/// </exception>
+		/// <exception cref="BlueRainInjectionException">
+		///     WaitForSingleObject returned an unexpected value while waiting for the
+		///     remote thread to be created for export call.
+		/// </exception>
 		public IntPtr Call<T>(string exportName, T parameter, bool callWithParameter = false) where T : struct
 		{
 			// The idea behind this method's quite simple. We can only call an __stdcall export with one parameter,
@@ -94,7 +115,7 @@ namespace BlueRain
 			// We don't support that as of yet - we'll resort to allocating and calling the export with a single parameter for now.
 
 			if (string.IsNullOrEmpty(exportName))
-				throw new ArgumentNullException("exportName");
+				throw new ArgumentNullException(nameof(exportName));
 
 			var exportPtr = GetExportPointer(exportName);
 
@@ -118,7 +139,7 @@ namespace BlueRain
 				}
 
 				threadHandle = UnsafeNativeMethods.CreateRemoteThread(kernel32Handle.DangerousGetHandle(), IntPtr.Zero, 0, exportPtr,
-					alloc != null ? alloc.Address : IntPtr.Zero, 0x0, IntPtr.Zero);
+					alloc?.Address ?? IntPtr.Zero, 0x0, IntPtr.Zero);
 
 				if (UnsafeNativeMethods.WaitForSingleObject(threadHandle.DangerousGetHandle(), uint.MaxValue) != 0x0)
 					throw new BlueRainInjectionException(
@@ -135,8 +156,7 @@ namespace BlueRain
 					threadHandle.Close();
 
 				// Make sure we free the chunk for the args.
-				if (alloc != null)
-					alloc.Dispose();
+				alloc?.Dispose();
 			}
 
 			return (IntPtr) exitCode;
@@ -181,7 +201,7 @@ namespace BlueRain
 			}
 			finally
 			{
-				if (kernel32Handle != null && !kernel32Handle.IsClosed)
+				if (!kernel32Handle.IsClosed)
 					kernel32Handle.Close();
 
 				if (threadHandle != null && !threadHandle.IsClosed)
@@ -190,20 +210,5 @@ namespace BlueRain
 
 			return exitCode != 0;
 		}
-
-		#region Implementation of IDisposable
-
-		/// <summary>
-		///     Releases unmanaged and - optionally - managed resources.
-		/// </summary>
-		public void Dispose()
-		{
-			if (_isDisposed)
-				return;
-
-			Free(_memory is LocalProcessMemory);
-		}
-
-		#endregion
 	}
 }
