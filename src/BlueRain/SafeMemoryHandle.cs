@@ -41,7 +41,6 @@ namespace BlueRain
 		[ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
 		protected override bool ReleaseHandle()
 		{
-			Console.WriteLine("Releasing handle on " + handle.ToString("X"));
 			return CloseHandle(handle);
 		}
 
