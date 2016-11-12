@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2013-2015 aevitas
+﻿// Copyright (C) 2013-2016 aevitas
 // See the file LICENSE for copying permission.
 
 using System;
@@ -43,6 +43,8 @@ namespace BlueRain
 
 			if (createInjector)
 				Injector = new Injector(this);
+
+            PatternScanner = new PatternScanner(this);
 		}
 
 		/// <summary>
@@ -75,6 +77,11 @@ namespace BlueRain
 		///     Gets or sets the process this NativeMemory instance is wrapped around.
 		/// </summary>
 		public Process Process { [Pure] get; protected set; }
+
+        /// <summary>
+        /// Gets the pattern scanner associated with this NativeMemory instance.
+        /// </summary>
+        public PatternScanner PatternScanner { get; }
 
 		#region Implementation of IDisposable
 
@@ -247,7 +254,7 @@ namespace BlueRain
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <param name="addresses">The addresses.</param>
 		/// <returns></returns>
-		/// <exception cref="BlueRainReadException">
+		/// <exception cref="MemoryReadException">
 		///     Thrown if the ReadProcessMemory operation fails, or doesn't return the
 		///     specified amount of bytes.
 		/// </exception>
@@ -290,11 +297,11 @@ namespace BlueRain
 		///     The class specified by <paramref name="T" /> does not have an accessible
 		///     default constructor.
 		/// </exception>
-		/// <exception cref="BlueRainReadException">
+		/// <exception cref="MemoryReadException">
 		///     Thrown if the ReadProcessMemory operation fails, or doesn't return the
 		///     specified amount of bytes.
 		/// </exception>
-		/// <exception cref="BlueRainWriteException">WriteProcessMemory failed.</exception>
+		/// <exception cref="MemoryWriteException">WriteProcessMemory failed.</exception>
 		/// <exception cref="OverflowException">
 		///     The array is multidimensional and contains more than
 		///     <see cref="F:System.Int32.MaxValue" /> elements.

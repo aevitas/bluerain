@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2013-2015 aevitas
+﻿// Copyright (C) 2013-2016 aevitas
 // See the file LICENSE for copying permission.
 
 using System;
@@ -147,7 +147,7 @@ namespace BlueRain
 					UnsafeNativeMethods.GetProcAddress(kernel32Handle.DangerousGetHandle(), "LoadLibraryW");
 
 				if (loadLibraryPtr == IntPtr.Zero)
-					throw new BlueRainInjectionException("Couldn't obtain handle to LoadLibraryW in remote process!");
+					throw new InjectionException("Couldn't obtain handle to LoadLibraryW in remote process!");
 
 				var pathBytes = Encoding.Unicode.GetBytes(path);
 
@@ -159,23 +159,23 @@ namespace BlueRain
 						loadLibraryPtr, alloc.Address, 0, IntPtr.Zero);
 
 					if (threadHandle.IsInvalid)
-						throw new BlueRainInjectionException(
+						throw new InjectionException(
 							"Couldn't obtain a handle to the remotely created thread for module injection!");
 				}
 
 				// ThreadWaitValue.Infinite = 0xFFFFFFFF = uint.MaxValue - Object0 = 0x0
 				if (UnsafeNativeMethods.WaitForSingleObject(threadHandle.DangerousGetHandle(), uint.MaxValue) != 0x0)
-					throw new BlueRainInjectionException(
+					throw new InjectionException(
 						"WaitForSingleObject returned an unexpected value while waiting for the remote thread to be created for module injection.");
 
 				uint exitCode;
 				if (!UnsafeNativeMethods.GetExitCodeThread(threadHandle.DangerousGetHandle(), out exitCode))
-					throw new BlueRainInjectionException("Couldn't obtain exit code for LoadLibraryW thread in remote process!");
+					throw new InjectionException("Couldn't obtain exit code for LoadLibraryW thread in remote process!");
 
 				// Let's make sure our module is actually present in the remote process now (assuming it's doing nothing special to hide itself..)
 				var moduleHandle = UnsafeNativeMethods.GetModuleHandle(libraryFileName);
 				if (moduleHandle.IsInvalid)
-					throw new BlueRainInjectionException(
+					throw new InjectionException(
 						"Couldn't obtain module handle to remotely injected library after LoadLibraryW!");
 
 				ourModule = memory.Process.Modules.Cast<ProcessModule>()
@@ -203,12 +203,12 @@ namespace BlueRain
 			var lib = SafeLoadLibrary.LoadLibraryEx(libraryPath);
 
 			if (lib == null)
-				throw new BlueRainInjectionException("LoadLibrary failed in local process!");
+				throw new InjectionException("LoadLibrary failed in local process!");
 
 			var module = Process.GetCurrentProcess().Modules.Cast<ProcessModule>().FirstOrDefault(s => s.FileName == libraryPath);
 
 			if (module == null)
-				throw new BlueRainInjectionException("The injected library couldn't be found in the Process' module list!");
+				throw new InjectionException("The injected library couldn't be found in the Process' module list!");
 
 			return new InjectedModule(module, _memory);
 		}
@@ -219,7 +219,7 @@ namespace BlueRain
 		/// <param name="path">The path.</param>
 		/// <returns></returns>
 		/// <exception cref="BlueRainException">Couldn't eject the specified library - it wasn't injected by this injector:  + path</exception>
-		/// <exception cref="BlueRainInjectionException">
+		/// <exception cref="InjectionException">
 		///     WaitForSingleObject returned an unexpected value while waiting for the
 		///     remote thread to be created for module eject.
 		/// </exception>

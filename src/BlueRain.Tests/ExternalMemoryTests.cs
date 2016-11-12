@@ -76,7 +76,7 @@ namespace BlueRain.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof (BlueRainReadException))]
+		[ExpectedException(typeof (MemoryReadException))]
 		public void RelativeRead()
 		{
 			Memory.ReadBytes(new IntPtr(0x1500), 10, true);
@@ -94,14 +94,14 @@ namespace BlueRain.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof (BlueRainWriteException))]
+		[ExpectedException(typeof (MemoryWriteException))]
 		public void RelativeWrite()
 		{
 			Memory.WriteBytes(new IntPtr(0x1000), new byte[10], true);
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof (BlueRainReadException))]
+		[ExpectedException(typeof (MemoryReadException))]
 		public void WriteMultipleVals()
 		{
 			var x = 10;
@@ -111,7 +111,7 @@ namespace BlueRain.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof (BlueRainReadException))]
+		[ExpectedException(typeof (MemoryReadException))]
 		public void ReadMultipleVals()
 		{
 			Memory.Read<int>(true, new IntPtr(0x1000), new IntPtr(0x20), new IntPtr(0x1000));

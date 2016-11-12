@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2013-2015 aevitas
+﻿// Copyright (C) 2013-2016 aevitas
 // See the file LICENSE for copying permission.
 
 using System;
@@ -147,7 +147,7 @@ namespace BlueRain
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException">Address may not be zero, and count may not be zero.</exception>
-		/// <exception cref="BlueRainReadException">
+		/// <exception cref="MemoryReadException">
 		///     Thrown if the ReadProcessMemory operation fails, or doesn't return the
 		///     specified amount of bytes.
 		/// </exception>
@@ -170,7 +170,7 @@ namespace BlueRain
 					return buffer;
 			}
 
-			throw new BlueRainReadException(address, count);
+			throw new MemoryReadException(address, count);
 		}
 
 		/// <summary>
@@ -180,7 +180,7 @@ namespace BlueRain
 		/// <param name="bytes">The bytes.</param>
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <returns></returns>
-		/// <exception cref="BlueRain.Common.BlueRainWriteException"></exception>
+		/// <exception cref="MemoryWriteException"></exception>
 		/// <exception cref="OverflowException">
 		///     The array is multidimensional and contains more than
 		///     <see cref="F:System.Int32.MaxValue" /> elements.
@@ -203,7 +203,7 @@ namespace BlueRain
 			// All we need to check - if WriteProcessMemory fails numWriten will be 0.
 			var success = numWritten == bytes.Length;
 			if (!success)
-				throw new BlueRainWriteException(address, bytes.Length);
+				throw new MemoryWriteException(address, bytes.Length);
 		}
 
 		/// <summary>
@@ -214,7 +214,7 @@ namespace BlueRain
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException">Address may not be zero, and count may not be zero.</exception>
-		/// <exception cref="BlueRainReadException">
+		/// <exception cref="MemoryReadException">
 		///     Thrown if the ReadProcessMemory operation fails, or doesn't return the
 		///     specified amount of bytes.
 		/// </exception>
@@ -243,7 +243,7 @@ namespace BlueRain
 		/// <param name="isRelative">if set to <c>true</c> [is relative].</param>
 		/// <returns></returns>
 		/// <exception cref="ArgumentException">Address may not be zero, and count may not be zero.</exception>
-		/// <exception cref="BlueRainReadException">
+		/// <exception cref="MemoryReadException">
 		///     Thrown if the ReadProcessMemory operation fails, or doesn't return the
 		///     specified amount of bytes.
 		/// </exception>
@@ -278,7 +278,7 @@ namespace BlueRain
 		///     The array is multidimensional and contains more than
 		///     <see cref="F:System.Int32.MaxValue" /> elements.
 		/// </exception>
-		/// <exception cref="BlueRainWriteException">WriteProcessMemory failed.</exception>
+		/// <exception cref="MemoryWriteException">WriteProcessMemory failed.</exception>
 		/// <exception cref="ArgumentException"><paramref name="T" /> is a reference type that is not a formatted class. </exception>
 		public override unsafe void Write<T>(IntPtr address, T value, bool isRelative = false)
 		{

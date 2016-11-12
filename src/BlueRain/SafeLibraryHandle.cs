@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2013-2015 aevitas
+﻿// Copyright (C) 2013-2016 aevitas
 // See the file LICENSE for copying permission.
 
 using Microsoft.Win32.SafeHandles;
