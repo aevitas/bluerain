@@ -44,8 +44,8 @@ namespace BlueRain.Common
 		/// <param name="address">The address.</param>
 		/// <param name="count">The count.</param>
 		public MemoryReadException(IntPtr address, int count)
-			: this(string.Format("ReadProcessMemory failed! Could not read {0} bytes from {1}!", count, address.ToString("X"))
-				)
+			: this($"ReadProcessMemory failed! Could not read {count} bytes from {address.ToString("X")}!"
+			    )
 		{
 		}
 	}
@@ -70,7 +70,7 @@ namespace BlueRain.Common
 		/// <param name="address">The address.</param>
 		/// <param name="count">The count.</param>
 		public MemoryWriteException(IntPtr address, int count)
-			: this(string.Format("WriteProcessMemory failed! Could not write {0} bytes at {1}!", count, address.ToString("X")))
+			: this($"WriteProcessMemory failed! Could not write {count} bytes at {address.ToString("X")}!")
 		{
 		}
 	}
