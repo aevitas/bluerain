@@ -96,6 +96,7 @@
     <Compile Include="ExternalMemoryTests.cs" />
     <Compile Include="LocalMemoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RequiresTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BlueRain\BlueRain.csproj">
