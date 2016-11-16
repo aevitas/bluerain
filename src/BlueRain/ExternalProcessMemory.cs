@@ -223,12 +223,20 @@ namespace BlueRain
         {
             Requires.NotEqual(address, IntPtr.Zero, nameof(address));
 
-            var size = Unsafe.SizeOf<T>();
+            // We can bypass the marshal completely, unless the type we're reading has marshalling
+            // directives such as a [MarshalAs] attribute.
+            bool requiresMarshal = MarshalCache<T>.TypeRequiresMarshal;
+            var size = requiresMarshal ? MarshalCache<T>.Size : Unsafe.SizeOf<T>();
 
             // Unsafe context doesn't allow for the use of await - run the read synchronously.
             var buffer = ReadBytes(address, size, isRelative);
             fixed (byte* b = buffer)
+            {
+                if (requiresMarshal)
+                    return Marshal.PtrToStructure<T>(new IntPtr(b));
+
                 return Unsafe.Read<T>(b);
+            }
         }
 
         /// <summary>
