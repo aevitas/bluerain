@@ -227,8 +227,7 @@ namespace BlueRain
             // directives such as a [MarshalAs] attribute.
             bool requiresMarshal = MarshalCache<T>.TypeRequiresMarshal;
             var size = requiresMarshal ? MarshalCache<T>.Size : Unsafe.SizeOf<T>();
-
-            // Unsafe context doesn't allow for the use of await - run the read synchronously.
+            
             var buffer = ReadBytes(address, size, isRelative);
             fixed (byte* b = buffer)
             {
