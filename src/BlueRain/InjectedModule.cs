@@ -71,7 +71,7 @@ namespace BlueRain
 
 			// Call LoadLibraryExW without resolving DLL references - if at all possible we don't want to run any remote code 
 			// on "our" thread - all we need to do is resolve an export.
-			using (var lib = SafeLoadLibrary.LoadLibraryEx(Module.FileName, (uint) LoadLibraryExOptions.DontResolveDllReferences)
+			using (var lib = SafeLibraryHandle.LoadLibraryEx(Module.FileName, (uint) LoadLibraryExOptions.DontResolveDllReferences)
 				)
 			{
 				if (lib == null)

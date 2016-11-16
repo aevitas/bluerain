@@ -200,7 +200,7 @@ namespace BlueRain
 		{
 			// It's hardly "injecting" when we're in-process, but for the sake of keeping the API uniform we'll go with it.
 			// All we have to do is call LoadLibrary on the local process and wrap it in an InjectedModule type.
-			var lib = SafeLoadLibrary.LoadLibraryEx(libraryPath);
+			var lib = SafeLibraryHandle.LoadLibraryEx(libraryPath);
 
 			if (lib == null)
 				throw new InjectionException("LoadLibrary failed in local process!");
