@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2013-2015 aevitas
+﻿// Copyright (C) 2013-2016 aevitas
 // See the file LICENSE for copying permission.
 
 using System;
@@ -26,26 +26,26 @@ namespace BlueRain.Common
 	/// <summary>
 	///     Exception thrown when a reading operation fails.
 	/// </summary>
-	public class BlueRainReadException : BlueRainException
+	public class MemoryReadException : BlueRainException
 	{
 		/// <summary>
-		///     Initializes a new instance of the <see cref="BlueRainReadException" /> class.
+		///     Initializes a new instance of the <see cref="MemoryReadException" /> class.
 		/// </summary>
 		/// <param name="message">The message that describes the error.</param>
-		public BlueRainReadException(string message)
+		public MemoryReadException(string message)
 			: base(message)
 		{
 		}
 
 
 		/// <summary>
-		///     Initializes a new instance of the <see cref="BlueRainReadException" /> class.
+		///     Initializes a new instance of the <see cref="MemoryReadException" /> class.
 		/// </summary>
 		/// <param name="address">The address.</param>
 		/// <param name="count">The count.</param>
-		public BlueRainReadException(IntPtr address, int count)
-			: this(string.Format("ReadProcessMemory failed! Could not read {0} bytes from {1}!", count, address.ToString("X"))
-				)
+		public MemoryReadException(IntPtr address, int count)
+			: this($"ReadProcessMemory failed! Could not read {count} bytes from {address.ToString("X")}!"
+			    )
 		{
 		}
 	}
@@ -53,24 +53,24 @@ namespace BlueRain.Common
 	/// <summary>
 	///     Exception thrown when a writing operation fails.
 	/// </summary>
-	public class BlueRainWriteException : BlueRainException
+	public class MemoryWriteException : BlueRainException
 	{
 		/// <summary>
-		///     Initializes a new instance of the <see cref="BlueRainWriteException" /> class.
+		///     Initializes a new instance of the <see cref="MemoryWriteException" /> class.
 		/// </summary>
 		/// <param name="message">The message that describes the error.</param>
-		public BlueRainWriteException(string message)
+		public MemoryWriteException(string message)
 			: base(message)
 		{
 		}
 
 		/// <summary>
-		///     Initializes a new instance of the <see cref="BlueRainWriteException" /> class.
+		///     Initializes a new instance of the <see cref="MemoryWriteException" /> class.
 		/// </summary>
 		/// <param name="address">The address.</param>
 		/// <param name="count">The count.</param>
-		public BlueRainWriteException(IntPtr address, int count)
-			: this(string.Format("WriteProcessMemory failed! Could not write {0} bytes at {1}!", count, address.ToString("X")))
+		public MemoryWriteException(IntPtr address, int count)
+			: this($"WriteProcessMemory failed! Could not write {count} bytes at {address.ToString("X")}!")
 		{
 		}
 	}
@@ -78,13 +78,13 @@ namespace BlueRain.Common
 	/// <summary>
 	///     Exception thrown when an operation related to injection fails.
 	/// </summary>
-	public class BlueRainInjectionException : BlueRainException
+	public class InjectionException : BlueRainException
 	{
 		/// <summary>
-		///     Initializes a new instance of the <see cref="BlueRainInjectionException" /> class.
+		///     Initializes a new instance of the <see cref="InjectionException" /> class.
 		/// </summary>
 		/// <param name="message">The message that describes the error.</param>
-		public BlueRainInjectionException(string message) : base(message)
+		public InjectionException(string message) : base(message)
 		{
 		}
 	}

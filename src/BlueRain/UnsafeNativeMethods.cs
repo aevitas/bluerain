@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2013-2015 aevitas
+﻿// Copyright (C) 2013-2016 aevitas
 // See the file LICENSE for copying permission.
 
 using System;
@@ -16,7 +16,7 @@ namespace BlueRain
 		internal const string Kernel32 = "kernel32";
 
 		[DllImport(Kernel32, ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
-		internal static extern unsafe SafeLoadLibrary LoadLibraryExW([In] string lpwLibFileName, [In] void* hFile,
+		internal static extern unsafe SafeLibraryHandle LoadLibraryExW([In] string lpwLibFileName, [In] void* hFile,
 			[In] uint dwFlags);
 
 		[DllImport(Kernel32, ExactSpelling = true, SetLastError = true)]

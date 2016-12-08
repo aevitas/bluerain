@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2013-2015 aevitas
+﻿// Copyright (C) 2013-2016 aevitas
 // See the file LICENSE for copying permission.
 
 using Microsoft.Win32.SafeHandles;
@@ -8,16 +8,16 @@ namespace BlueRain
 	/// <summary>
 	///     Provides a safe handle for a library loaded via LoadLibraryEx.
 	/// </summary>
-	public class SafeLoadLibrary : SafeHandleMinusOneIsInvalid
+	public class SafeLibraryHandle : SafeHandleMinusOneIsInvalid
 	{
 		/// <summary>
-		///     Initializes a new instance of the <see cref="SafeLoadLibrary" /> class.
+		///     Initializes a new instance of the <see cref="SafeLibraryHandle" /> class.
 		/// </summary>
 		/// <param name="ownsHandle">
 		///     true to reliably release the handle during the finalization phase; false to prevent reliable
 		///     release (not recommended).
 		/// </param>
-		public SafeLoadLibrary(bool ownsHandle)
+		public SafeLibraryHandle(bool ownsHandle)
 			: base(ownsHandle)
 		{
 		}
@@ -28,7 +28,7 @@ namespace BlueRain
 		/// <param name="library">The library.</param>
 		/// <param name="loadLibraryOptions">The load library options.</param>
 		/// <returns></returns>
-		public static unsafe SafeLoadLibrary LoadLibraryEx(string library, uint loadLibraryOptions = 0)
+		public static unsafe SafeLibraryHandle LoadLibraryEx(string library, uint loadLibraryOptions = 0)
 		{
 			var result = UnsafeNativeMethods.LoadLibraryExW(library, null, loadLibraryOptions);
 			if (result.IsInvalid)
