@@ -64,6 +64,10 @@ namespace BlueRain
         {
         }
 
+        /// <summary>
+        ///     Gets or sets the process handle. Only required for external memory manipulation. For local process memory
+        ///     instances, this will always be null.
+        /// </summary>
         internal SafeMemoryHandle ProcessHandle { get; set; }
 
         protected static ProcessAccess DefaultProcessAccess { get; } = ProcessAccess.CreateThread |
