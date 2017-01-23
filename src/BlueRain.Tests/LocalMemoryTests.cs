@@ -81,6 +81,12 @@ namespace BlueRain.Tests
 			offset += sizeof (ushort);
 		}
 
+        [TestMethod]
+	    public void CreateWithInjector()
+	    {
+	        var lpm = new LocalProcessMemory(Process.GetCurrentProcess(), true);
+	    }
+
 		// Simple struct of 12 bytes used for sequential read/write tests.
 		[StructLayout(LayoutKind.Sequential, Pack = 1)]
 		private struct Vector3
