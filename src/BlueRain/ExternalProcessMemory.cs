@@ -16,7 +16,6 @@ namespace BlueRain
     public sealed class ExternalProcessMemory : NativeMemory
     {
         private readonly SafeMemoryHandle _mainThreadHandle;
-        internal readonly SafeMemoryHandle ProcessHandle;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="ExternalProcessMemory" /> class.
@@ -36,10 +35,12 @@ namespace BlueRain
         public ExternalProcessMemory(Process process,
             ProcessAccess access, bool createInjector = false) : base(process, createInjector)
         {
-            ProcessHandle = OpenProcess(access, false, process.Id);
+            // If we instantiate an injector, the NativeMemory ctor will take care of opening a handle.
+            if (!createInjector)
+                ProcessHandle = OpenProcess(access, false, process.Id);
 
             // Obtain a handle to the process' main thread so we can suspend/resume it whenever we need to.0
-            _mainThreadHandle = OpenThread(ThreadAccess.ALL, false, (uint)process.Threads[0].Id);
+            _mainThreadHandle = OpenThread(ThreadAccess.ALL, false, (uint) process.Threads[0].Id);
 
             Process.EnterDebugMode();
         }
@@ -61,16 +62,16 @@ namespace BlueRain
         ///     The process's <see cref="P:System.Diagnostics.Process.Id" /> property has
         ///     not been set.-or- There is no process associated with this <see cref="T:System.Diagnostics.Process" /> object.
         /// </exception>
-        public ExternalProcessMemory(Process process, bool createInjector = false) : this(process,
-            ProcessAccess.CreateThread | ProcessAccess.QueryInformation | ProcessAccess.VMRead |
-            ProcessAccess.VMWrite | ProcessAccess.VMOperation | ProcessAccess.SetInformation, createInjector)
+        public ExternalProcessMemory(Process process, bool createInjector = false)
+            : this(process, DefaultProcessAccess, createInjector)
         {
         }
 
         // VirtualAllocEx specifies size as a size_t - we'll use the .NET equivalent.
         private IntPtr AllocateMemory(UIntPtr size)
         {
-            return VirtualAllocEx(ProcessHandle, IntPtr.Zero, size, AllocationType.Commit, MemoryProtection.ExecuteReadWrite);
+            return VirtualAllocEx(ProcessHandle, IntPtr.Zero, size, AllocationType.Commit,
+                MemoryProtection.ExecuteReadWrite);
         }
 
         /// <summary>
@@ -84,9 +85,7 @@ namespace BlueRain
             var chunk = AllocateMemory(size);
 
             if (chunk != IntPtr.Zero)
-            {
                 return new AllocatedMemory(chunk, size.ToUInt32(), this);
-            }
 
             throw new BlueRainException($"Couldn't allocate {size.ToUInt32()} sized chunk!");
         }
@@ -115,10 +114,6 @@ namespace BlueRain
 
         [DllImport("kernel32", EntryPoint = "OpenThread", SetLastError = true)]
         public static extern IntPtr OpenThread(uint dwDesiredAccess, bool bInheritHandle, uint dwThreadId);
-
-        [DllImport("kernel32.dll")]
-        private static extern SafeMemoryHandle OpenProcess(
-            ProcessAccess dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern unsafe bool ReadProcessMemory(
@@ -196,10 +191,10 @@ namespace BlueRain
 
             // dwSize is a size_t, meaning it *may* differ depending architecture. Though very unlikely to cause trouble if 
             // defined as uint, we're passing it as IntPtr here as it is the closest .NET equivalent.
-            VirtualProtectEx(ProcessHandle, address, (IntPtr)bytes.Length, (uint)MemoryProtection.ExecuteReadWrite,
+            VirtualProtectEx(ProcessHandle, address, (IntPtr) bytes.Length, (uint) MemoryProtection.ExecuteReadWrite,
                 out oldProtect);
             WriteProcessMemory(ProcessHandle, address, bytes, bytes.Length, out numWritten);
-            VirtualProtectEx(ProcessHandle, address, (IntPtr)bytes.Length, oldProtect, out oldProtect);
+            VirtualProtectEx(ProcessHandle, address, (IntPtr) bytes.Length, oldProtect, out oldProtect);
 
             // All we need to check - if WriteProcessMemory fails numWriten will be 0.
             var success = numWritten == bytes.Length;
@@ -225,9 +220,9 @@ namespace BlueRain
 
             // We can bypass the marshal completely, unless the type we're reading has marshalling
             // directives such as a [MarshalAs] attribute.
-            bool requiresMarshal = MarshalCache<T>.TypeRequiresMarshal;
+            var requiresMarshal = MarshalCache<T>.TypeRequiresMarshal;
             var size = requiresMarshal ? MarshalCache<T>.Size : Unsafe.SizeOf<T>();
-            
+
             var buffer = ReadBytes(address, size, isRelative);
             fixed (byte* b = buffer)
             {
@@ -261,7 +256,7 @@ namespace BlueRain
 
             // Read = add + n * size
             for (var i = 0; i < count; i++)
-                ret[i] = Read<T>(address + (i * size), isRelative);
+                ret[i] = Read<T>(address + i * size, isRelative);
 
             return ret;
         }
@@ -283,8 +278,8 @@ namespace BlueRain
         public override unsafe void Write<T>(IntPtr address, T value, bool isRelative = false)
         {
             Requires.NotEqual(address, IntPtr.Zero, nameof(address));
-            
-            bool requiresMarshal = MarshalCache<T>.TypeRequiresMarshal;
+
+            var requiresMarshal = MarshalCache<T>.TypeRequiresMarshal;
 
             var size = requiresMarshal ? MarshalCache<T>.Size : Unsafe.SizeOf<T>();
             var buffer = new byte[size];
@@ -292,13 +287,11 @@ namespace BlueRain
             fixed (byte* b = buffer)
             {
                 if (requiresMarshal)
-                    Marshal.StructureToPtr(value, (IntPtr)b, true);
+                    Marshal.StructureToPtr(value, (IntPtr) b, true);
                 else
-                {
                     Unsafe.Write(b, value);
-                }
             }
-            
+
             WriteBytes(address, buffer, isRelative);
         }
 

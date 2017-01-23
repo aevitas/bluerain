@@ -147,6 +147,12 @@ namespace BlueRain.Tests
             epm.Dispose();
         }
 
+        [TestMethod]
+        public void CreateWithInjector()
+        {
+            var epm = new ExternalProcessMemory(Process.GetCurrentProcess(), createInjector: true);
+        }
+
         internal enum TestEnum
         {
             A,

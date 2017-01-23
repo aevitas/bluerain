@@ -27,8 +27,9 @@ namespace BlueRain
         ///     Initializes a new instance of the <see cref="NativeMemory" /> class.
         /// </summary>
         /// <param name="process">The process.</param>
-        /// <param name="createInjector">if set to <c>true</c> creates an injector for module loading support.</param>
-        protected NativeMemory(Process process, bool createInjector = false)
+        /// <param name="access">The access.</param>
+        /// <param name="createInjector">if set to <c>true</c> [create injector].</param>
+        protected NativeMemory(Process process, ProcessAccess access, bool createInjector = false)
         {
             Requires.NotNull(process, nameof(process));
 
@@ -41,11 +42,39 @@ namespace BlueRain
                 await OnExited(Process.ExitCode, args);
             };
 
+
             if (createInjector)
+            {
+                if (IsExternal)
+                    ProcessHandle = OpenProcess(access, false, process.Id);
+
                 Injector = new Injector(this);
+            }
 
             PatternScanner = new PatternScanner(this);
         }
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="NativeMemory" /> class.
+        /// </summary>
+        /// <param name="process">The process.</param>
+        /// <param name="createInjector">if set to <c>true</c> creates an injector for module loading support.</param>
+        protected NativeMemory(Process process, bool createInjector = false)
+            : this(process, DefaultProcessAccess, createInjector)
+        {
+        }
+
+        /// <summary>
+        ///     Gets or sets the process handle. Only required for external memory manipulation. For local process memory
+        ///     instances, this will always be null.
+        /// </summary>
+        internal SafeMemoryHandle ProcessHandle { get; set; }
+
+        protected static ProcessAccess DefaultProcessAccess { get; } = ProcessAccess.CreateThread |
+                                                                       ProcessAccess.QueryInformation |
+                                                                       ProcessAccess.VMRead |
+                                                                       ProcessAccess.VMWrite | ProcessAccess.VMOperation |
+                                                                       ProcessAccess.SetInformation;
 
         /// <summary>
         ///     Gets the module injector/loader for this memory instance.
@@ -59,6 +88,8 @@ namespace BlueRain
         ///     <c>true</c> if this instance is disposed; otherwise, <c>false</c>.
         /// </value>
         public bool IsDisposed { get; private set; }
+
+        private bool IsExternal => Process != null && Process != Process.GetCurrentProcess();
 
         /// <summary>
         ///     Gets or sets the base address of the wrapped process' main module.
@@ -392,6 +423,10 @@ namespace BlueRain
         [DllImport("kernel32.dll")]
         protected static extern SafeMemoryHandle OpenThread(ThreadAccess dwDesiredAccess, bool bInheritHandle,
             uint dwThreadId);
+
+        [DllImport("kernel32.dll")]
+        protected static extern SafeMemoryHandle OpenProcess(
+            ProcessAccess dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, int dwProcessId);
 
         #endregion
     }
