@@ -97,6 +97,7 @@
     <Compile Include="ExternalProcessMemory.cs" />
     <Compile Include="InjectedModule.cs" />
     <Compile Include="Injector.cs" />
+    <Compile Include="InjectorCreationOptions.cs" />
     <Compile Include="LocalProcessMemory.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="NativeMemory.cs" />

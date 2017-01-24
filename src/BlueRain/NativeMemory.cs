@@ -28,8 +28,8 @@ namespace BlueRain
         /// </summary>
         /// <param name="process">The process.</param>
         /// <param name="access">The access.</param>
-        /// <param name="createInjector">if set to <c>true</c> [create injector].</param>
-        protected NativeMemory(Process process, ProcessAccess access, bool createInjector = false)
+        /// <param name="injectorOptions">The injector options.</param>
+        protected NativeMemory(Process process, ProcessAccess access, InjectorCreationOptions injectorOptions)
         {
             Requires.NotNull(process, nameof(process));
 
@@ -43,7 +43,7 @@ namespace BlueRain
             };
 
 
-            if (createInjector)
+            if (injectorOptions.CreateInjector)
             {
                 if (IsExternal)
                     ProcessHandle = OpenProcess(access, false, process.Id);
@@ -58,9 +58,17 @@ namespace BlueRain
         ///     Initializes a new instance of the <see cref="NativeMemory" /> class.
         /// </summary>
         /// <param name="process">The process.</param>
-        /// <param name="createInjector">if set to <c>true</c> creates an injector for module loading support.</param>
-        protected NativeMemory(Process process, bool createInjector = false)
-            : this(process, DefaultProcessAccess, createInjector)
+        /// <param name="injectorOptions">The injector options.</param>
+        protected NativeMemory(Process process, InjectorCreationOptions injectorOptions)
+            : this(process, DefaultProcessAccess, injectorOptions)
+        {
+        }
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="NativeMemory" /> class.
+        /// </summary>
+        /// <param name="process">The process.</param>
+        protected NativeMemory(Process process) : this(process, InjectorCreationOptions.Default)
         {
         }
 

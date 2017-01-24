@@ -17,9 +17,17 @@ namespace BlueRain
         ///     Initializes a new instance of the <see cref="LocalProcessMemory" /> class.
         /// </summary>
         /// <param name="process">The process.</param>
-        /// <param name="createInjector">if set to <c>true</c> creates an injector for module loading support.</param>
-        public LocalProcessMemory(Process process, bool createInjector = false)
-            : base(process, createInjector)
+        /// <param name="injectorOptions">The injector options.</param>
+        public LocalProcessMemory(Process process, InjectorCreationOptions injectorOptions)
+            : base(process, injectorOptions)
+        {
+        }
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="LocalProcessMemory" /> class.
+        /// </summary>
+        /// <param name="process">The process.</param>
+        public LocalProcessMemory(Process process) : this(process, InjectorCreationOptions.Default)
         {
         }
 
@@ -101,7 +109,7 @@ namespace BlueRain
 
             var ret = new T[count];
             for (var i = 0; i < count; i++)
-                ret[i] = Read<T>(address + MarshalCache<T>.Size*i, isRelative);
+                ret[i] = Read<T>(address + MarshalCache<T>.Size * i, isRelative);
 
             return ret;
         }

@@ -9,7 +9,7 @@ namespace BlueRain.Tests
 	[TestClass]
 	public unsafe class LocalMemoryTests
 	{
-		public static LocalProcessMemory Memory = new LocalProcessMemory(Process.GetCurrentProcess(), false);
+		public static LocalProcessMemory Memory = new LocalProcessMemory(Process.GetCurrentProcess());
 
 		[TestMethod]
 		public void WriteAndReadBytes()
@@ -83,9 +83,9 @@ namespace BlueRain.Tests
 
         [TestMethod]
 	    public void CreateWithInjector()
-	    {
-	        var lpm = new LocalProcessMemory(Process.GetCurrentProcess(), true);
-	    }
+        {
+            var lpm = new LocalProcessMemory(Process.GetCurrentProcess(), new InjectorCreationOptions(true, true));
+        }
 
 		// Simple struct of 12 bytes used for sequential read/write tests.
 		[StructLayout(LayoutKind.Sequential, Pack = 1)]
