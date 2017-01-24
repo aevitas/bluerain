@@ -22,7 +22,7 @@ namespace BlueRain
         /// </summary>
         /// <param name="process">The process.</param>
         /// <param name="access">The access flags.</param>
-        /// <param name="createInjector">if set to <c>true</c> creates an injector for module loading support.</param>
+        /// <param name="injectorOptions">The injector options.</param>
         /// <exception cref="PlatformNotSupportedException">
         ///     The platform is Windows 98 or Windows Millennium Edition (Windows Me);
         ///     set the <see cref="P:System.Diagnostics.ProcessStartInfo.UseShellExecute" /> property to false to access this
@@ -33,10 +33,11 @@ namespace BlueRain
         ///     not been set.-or- There is no process associated with this <see cref="T:System.Diagnostics.Process" /> object.
         /// </exception>
         public ExternalProcessMemory(Process process,
-            ProcessAccess access, bool createInjector = false) : base(process, createInjector)
+            ProcessAccess access, InjectorCreationOptions injectorOptions) : base(process, injectorOptions)
         {
             // If we instantiate an injector, the NativeMemory ctor will take care of opening a handle.
-            if (!createInjector)
+            // Otherwise, we'll have to open a handle here.
+            if (!injectorOptions.CreateInjector)
                 ProcessHandle = OpenProcess(access, false, process.Id);
 
             // Obtain a handle to the process' main thread so we can suspend/resume it whenever we need to.0
@@ -52,7 +53,7 @@ namespace BlueRain
         ///     ProcessAccess.VMOperation | ProcessAccess.SetInformation
         /// </summary>
         /// <param name="process">The process.</param>
-        /// <param name="createInjector">if set to <c>true</c> creates an injector for module loading support.</param>
+        /// <param name="injectorOptions">The injector options.</param>
         /// <exception cref="PlatformNotSupportedException">
         ///     The platform is Windows 98 or Windows Millennium Edition (Windows Me);
         ///     set the <see cref="P:System.Diagnostics.ProcessStartInfo.UseShellExecute" /> property to false to access this
@@ -62,8 +63,16 @@ namespace BlueRain
         ///     The process's <see cref="P:System.Diagnostics.Process.Id" /> property has
         ///     not been set.-or- There is no process associated with this <see cref="T:System.Diagnostics.Process" /> object.
         /// </exception>
-        public ExternalProcessMemory(Process process, bool createInjector = false)
-            : this(process, DefaultProcessAccess, createInjector)
+        public ExternalProcessMemory(Process process, InjectorCreationOptions injectorOptions)
+            : this(process, DefaultProcessAccess, injectorOptions)
+        {
+        }
+
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="ExternalProcessMemory" /> class.
+        /// </summary>
+        /// <param name="process">The process.</param>
+        public ExternalProcessMemory(Process process) : this(process, InjectorCreationOptions.Default)
         {
         }
 

@@ -150,7 +150,7 @@ namespace BlueRain.Tests
         [TestMethod]
         public void CreateWithInjector()
         {
-            var epm = new ExternalProcessMemory(Process.GetCurrentProcess(), createInjector: true);
+            var epm = new ExternalProcessMemory(Process.GetCurrentProcess(), new InjectorCreationOptions(true, true));
         }
 
         internal enum TestEnum
