@@ -75,7 +75,7 @@ namespace BlueRain
 					// Use this once we figure out how to properly notify success/failure.
 					bool success;
 					foreach (var m in InjectedModules)
-						if (!m.Value.Free(IsExternal))
+						if (!m.Value.Free(!IsExternal))
 							success = false;
 				}
 				catch (BlueRainException)
