@@ -169,7 +169,7 @@ namespace BlueRain
 		/// <returns>
 		///     The exit code of FreeLibrary
 		/// </returns>
-		/// <exception cref="BlueRainException">Couldn't find FreeMemory in Kernel32!</exception>
+		/// <exception cref="BlueRainException">Couldn't find FreeLibrary in Kernel32!</exception>
 		/// <exception cref="InjectionException">
 		///     WaitForSingleObject returned an unexpected value while waiting for the
 		///     remote thread to be created for module eject.
@@ -183,7 +183,7 @@ namespace BlueRain
 			var kernel32Handle = UnsafeNativeMethods.GetModuleHandle(UnsafeNativeMethods.Kernel32);
 			var freeLibrary = UnsafeNativeMethods.GetProcAddress(kernel32Handle.DangerousGetHandle(), "FreeLibrary");
 			if (freeLibrary == IntPtr.Zero)
-				throw new BlueRainException("Couldn't find FreeMemory in Kernel32!");
+				throw new BlueRainException("Couldn't find FreeLibrary in Kernel32!");
 
 			SafeMemoryHandle threadHandle = null;
 			uint exitCode;
