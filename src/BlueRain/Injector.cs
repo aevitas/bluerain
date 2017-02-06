@@ -230,7 +230,7 @@ namespace BlueRain
 
 			var lib = InjectedModules.FirstOrDefault(s => s.Key == path);
 
-			return lib.Value.Free(IsExternal);
+			return lib.Value.Free(!IsExternal);
 		}
 	}
 }
