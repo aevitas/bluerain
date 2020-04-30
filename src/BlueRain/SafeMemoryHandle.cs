@@ -5,7 +5,6 @@ using System;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Security.Permissions;
 using Microsoft.Win32.SafeHandles;
 
 namespace BlueRain
@@ -13,7 +12,6 @@ namespace BlueRain
 	/// <summary>
 	///     Class of safe handle which uses 0 or -1 as an invalid handle.
 	/// </summary>
-	[HostProtection(MayLeakOnAbort = true)]
 	[SuppressUnmanagedCodeSecurity]
 	public class SafeMemoryHandle : SafeHandleZeroOrMinusOneIsInvalid
 	{

@@ -176,8 +176,9 @@ namespace BlueRain
         /// <param name="exitCode">The exit code.</param>
         /// <param name="eventArgs">The <see cref="EventArgs" /> instance containing the event data.</param>
         /// <returns></returns>
-        protected virtual async Task OnExited(int exitCode, EventArgs eventArgs)
+        protected virtual Task OnExited(int exitCode, EventArgs eventArgs)
         {
+            return Task.CompletedTask;
         }
 
         /// <summary>
