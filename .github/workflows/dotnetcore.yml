@@ -18,7 +18,7 @@ jobs:
       with:
         dotnet-version: 3.1.101
     - name: Install dependencies
-      run: dotnet restore
+      run: dotnet restore ./src/BlueRain.sln
     - name: Build
       run: dotnet build ./src/BlueRain.sln --configuration Release --no-restore
     - name: Test
