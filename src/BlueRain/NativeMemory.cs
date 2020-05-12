@@ -104,7 +104,7 @@ namespace BlueRain
         /// </summary>
         public IntPtr BaseAddress
         {
-            [Pure] get { return _baseAddress; }
+            [Pure] get => _baseAddress;
             set
             {
                 _baseAddress = value;
@@ -286,7 +286,7 @@ namespace BlueRain
             Requires.NotEqual(address, IntPtr.Zero, nameof(address));
             Requires.NotNull(encoding, nameof(encoding));
 
-            if (value[value.Length - 1] != '\0')
+            if (value[^1] != '\0')
                 value += '\0';
 
             WriteBytes(address, encoding.GetBytes(value), isRelative);
@@ -313,7 +313,7 @@ namespace BlueRain
         ///     On a 64-bit platform, the value of this instance is too large or too small to
         ///     represent as a 32-bit signed integer.
         /// </exception>
-        public virtual T Read<T>(bool isRelative = false, params IntPtr[] addresses) where T : struct
+        public virtual T Read<T>(bool isRelative = false, params IntPtr[] addresses) where T : unmanaged
         {
             Requires.Condition(() => addresses.Length > 0, nameof(addresses));
             Requires.NotEqual(addresses[0], IntPtr.Zero, nameof(addresses));
@@ -352,7 +352,7 @@ namespace BlueRain
         ///     The array is multidimensional and contains more than
         ///     <see cref="F:System.Int32.MaxValue" /> elements.
         /// </exception>
-        public virtual void Write<T>(bool isRelative, T value = default(T), params IntPtr[] addresses) where T : struct
+        public virtual void Write<T>(bool isRelative, T value = default, params IntPtr[] addresses) where T : unmanaged
         {
             Requires.Condition(() => addresses.Length > 0, nameof(addresses));
             Requires.NotEqual(addresses[0], IntPtr.Zero, nameof(addresses));

@@ -131,8 +131,6 @@ namespace BlueRain
 
         private T ReadInternal<T>(IntPtr address) where T : struct
         {
-            var type = MarshalCache<T>.RealType;
-
             if (!MarshalCache<T>.TypeRequiresMarshal)
             {
                 var val = default(T);

@@ -4,6 +4,13 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <RootNamespace>BlueRain</RootNamespace>
     <AssemblyName>BlueRain</AssemblyName>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Authors>aevitas</Authors>
+    <Version>2.0.0</Version>
+    <Description>BlueRain is a fully-featured memory manipulation library for both internal and external process manipulation. It includes support for reading/writing memory, allocating memory, and DLL injection.</Description>
+    <PackageProjectUrl>https://github.com/aevitas/bluerain</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/aevitas/bluerain</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -1,11 +1,11 @@
 ﻿// Copyright (C) 2013-2017 aevitas
 // See the file LICENSE for copying permission.
 
+using BlueRain.Common;
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using BlueRain.Common;
 
 namespace BlueRain
 {
@@ -170,8 +170,7 @@ namespace BlueRain
             var buffer = new byte[count];
             fixed (byte* b = buffer)
             {
-                int numRead;
-                if (ReadProcessMemory(ProcessHandle, address, b, count, out numRead) && numRead == count)
+                if (ReadProcessMemory(ProcessHandle, address, b, count, out var numRead) && numRead == count)
                     return buffer;
             }
 
@@ -195,14 +194,11 @@ namespace BlueRain
             Requires.NotEqual(address, IntPtr.Zero, nameof(address));
             Requires.NotEqual(bytes.Length, 0, nameof(bytes));
 
-            uint oldProtect;
-            int numWritten;
-
             // dwSize is a size_t, meaning it *may* differ depending architecture. Though very unlikely to cause trouble if 
             // defined as uint, we're passing it as IntPtr here as it is the closest .NET equivalent.
             VirtualProtectEx(ProcessHandle, address, (IntPtr) bytes.Length, (uint) MemoryProtection.ExecuteReadWrite,
-                out oldProtect);
-            WriteProcessMemory(ProcessHandle, address, bytes, bytes.Length, out numWritten);
+                out var oldProtect);
+            WriteProcessMemory(ProcessHandle, address, bytes, bytes.Length, out var numWritten);
             VirtualProtectEx(ProcessHandle, address, (IntPtr) bytes.Length, oldProtect, out oldProtect);
 
             // All we need to check - if WriteProcessMemory fails numWriten will be 0.
