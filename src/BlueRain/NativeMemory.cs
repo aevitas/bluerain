@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2013-2017 aevitas
+﻿// Copyright (C) 2013-2020 aevitas
 // See the file LICENSE for copying permission.
 
 using System;
