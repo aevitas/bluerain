@@ -53,13 +53,10 @@ namespace BlueRain
 		/// </summary>
 		public void Dispose()
 		{
-			var epm = Memory as ExternalProcessMemory;
-
-			if (epm != null)
+            if (Memory is ExternalProcessMemory epm)
 				VirtualFreeEx(epm.ProcessHandle, Address, (UIntPtr) Size, FreeType.Release);
 
-			var lpm = Memory as LocalProcessMemory;
-			if (lpm != null)
+            if (Memory is LocalProcessMemory lpm)
 				Marshal.FreeHGlobal(Address);
 
 			IsAllocated = false;
