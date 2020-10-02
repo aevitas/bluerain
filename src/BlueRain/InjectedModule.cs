@@ -67,25 +67,21 @@ namespace BlueRain
 		public IntPtr GetExportPointer(string exportName)
 		{
 			// Fairly certain this method was first implemented by Cypher aka RaptorFactor, so kudos to him.
-			IntPtr exportPtr;
 
-			// Call LoadLibraryExW without resolving DLL references - if at all possible we don't want to run any remote code 
+            // Call LoadLibraryExW without resolving DLL references - if at all possible we don't want to run any remote code 
 			// on "our" thread - all we need to do is resolve an export.
-			using (var lib = SafeLibraryHandle.LoadLibraryEx(Module.FileName, (uint) LoadLibraryExOptions.DontResolveDllReferences)
-				)
-			{
-				if (lib == null)
-					throw new InjectionException("Couldn't LoadLibrary into local thread to obtain export pointer!");
+            using var lib = SafeLibraryHandle.LoadLibraryEx(Module.FileName, (uint) LoadLibraryExOptions.DontResolveDllReferences);
+            if (lib == null)
+                throw new InjectionException("Couldn't LoadLibrary into local thread to obtain export pointer!");
 
-				var funcPtr = UnsafeNativeMethods.GetProcAddress(lib.DangerousGetHandle(), exportName);
-				if (funcPtr == IntPtr.Zero)
-					throw new InjectionException("Couldn't obtain function pointer for the specified export!");
+            var funcPtr = UnsafeNativeMethods.GetProcAddress(lib.DangerousGetHandle(), exportName);
+            if (funcPtr == IntPtr.Zero)
+                throw new InjectionException("Couldn't obtain function pointer for the specified export!");
 
-				// abs - base = ptr
-				exportPtr = funcPtr - Module.BaseAddress.ToInt32();
-			}
+            // abs - base = ptr
+            var exportPtr = funcPtr - Module.BaseAddress.ToInt32();
 
-			return exportPtr;
+            return exportPtr;
 		}
 
 		/// <summary>

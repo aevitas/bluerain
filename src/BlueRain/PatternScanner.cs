@@ -57,7 +57,7 @@ namespace BlueRain
             return startAddress + (int) ptr;
         }
 
-        private IntPtr FindPatternInternal(byte[] buffer, byte[] patternBytes, string mask)
+        private static IntPtr FindPatternInternal(byte[] buffer, byte[] patternBytes, string mask)
         {
             Requires.NotNull(buffer, nameof(buffer));
 

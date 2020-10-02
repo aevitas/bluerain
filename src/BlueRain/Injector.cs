@@ -37,8 +37,7 @@ namespace BlueRain
 		{
 			Requires.NotNull(memory, nameof(memory));
 
-			var epm = memory as ExternalProcessMemory;
-			if (epm != null && epm.ProcessHandle.IsInvalid)
+            if (memory is ExternalProcessMemory epm && epm.ProcessHandle.IsInvalid)
 				throw new ArgumentException(
 					"The specified ExternalProcessMemory has an invalid ProcessHandle - can not construct injector without a valid handle!");
 
@@ -105,8 +104,7 @@ namespace BlueRain
 				throw new InvalidOperationException("Can not inject a library without a valid Memory instance!");
 
 			// External requires some additional love to inject a library (CreateRemoteThread etc.)
-			var epm = _memory as ExternalProcessMemory;
-			if (epm != null)
+            if (_memory is ExternalProcessMemory epm)
 				return InjectLibraryExternal(libraryPath);
 
 			// Otherwise, just call LoadLibraryW and be done with it.
